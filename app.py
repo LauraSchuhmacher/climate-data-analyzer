@@ -1,13 +1,17 @@
 import json
 import requests
-from flask import Flask, request
+from flask import Flask, request, send_from_directory
 from flask_restful import Api, Resource
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder="static")
 api = Api(app)
 
 DATA_FILE = "data.json"
 EXTERNAL_API_URL = "https://www.ncei.noaa.gov/cdo-web/api/v2/"  # Externe API
+
+@app.route("/")
+def serve_frontend():
+    return send_from_directory("static", "Index.html")
 
 # Daten aus der JSON-Datei lesen
 def read_data():
