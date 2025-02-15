@@ -9,13 +9,49 @@ h1 {
     text-align: left;
 }
 
+.configuration {
+    display: grid;
+    grid-template-columns: 55% 45%;
+    align-items: center;
+}
+
+.label-input label, .evaluation label {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+}
+
+.search-container input, .configuration input, .evaluation select {
+    margin-left: auto;
+    margin-right: 5%;
+    display: block;
+}
+
+.select {
+    margin-left: auto;
+    margin-right: 5%;
+    display: block;
+}
+
 .container {
     width: 90%;
     margin: auto;
 }
 
-.section {
-    margin-bottom: 20px;
+.evaluation {
+    display: grid;
+    grid-template-columns: 25% 5% 29% 33%;
+    align-items: center;
+}
+
+.seasons {
+    margin-left: 5%;
+}
+
+.search-container {
+    display: grid;
+    grid-template-columns: 30% 67%;
+    justify-content: space-between;
 }
 
 input, select, button {
@@ -45,6 +81,8 @@ th {
     padding: 10px 15px;
     border: none;
     cursor: pointer;
+    display: block;
+    margin: auto auto;
 }
 
 .button:hover {
