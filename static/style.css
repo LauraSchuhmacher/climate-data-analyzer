@@ -1,97 +1,113 @@
-/* style.css */
 body {
-    font-family: Arial, sans-serif;
-    margin: 20px;
-    padding: 20px;
+    font-family: 'Arial', sans-serif;
+    background: linear-gradient(to right, #4facfe, #00f2fe);
+    color: #333;
+    margin: 0;
+    padding: 0;
 }
 
-h1 {
-    text-align: left;
+h1, h2 {
+    text-align: center;
+    color: #007BFF;
 }
 
-.configuration {
-    display: grid;
-    grid-template-columns: 55% 45%;
-    align-items: center;
+button {
+    width: 100%;
+    padding: 10px;
+    margin: 8px 0;
+    border-radius: 5px;
+    border: 1px solid #ddd;
+    font-size: 16px;
 }
 
-.label-input label, .evaluation label {
-    display: flex;
-    justify-content: flex-end;
-    align-items: center;
+button.button {
+    background: #007BFF;
+    color: white;
+    border: none;
+    font-size: 18px;
+    font-weight: bold;
+    transition: background 0.3s;
 }
 
-.search-container input, .configuration input, .evaluation select {
-    margin-left: auto;
-    margin-right: 5%;
-    display: block;
+button.button:hover {
+    background: #0056b3;
 }
 
-.select {
-    margin-left: auto;
-    margin-right: 5%;
-    display: block;
+select {
+    width: 50%;
+    padding: 10px;
+    margin: 8px 20%;
+    border-radius: 5px;
+    border: 1px solid #ddd;
+    font-size: 16px; 
+}
+
+input {
+    width: 60%;
+    padding: 10px;
+    margin: 8px 0 0 auto;
+    border-radius: 5px;
+    border: 1px solid #ddd;
+    font-size: 16px;
 }
 
 .container {
     width: 90%;
-    margin: auto;
+    max-width: 1200px;
+    margin: 20px auto;
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
 
-.evaluation {
-    display: grid;
-    grid-template-columns: 25% 5% 29% 33%;
-    align-items: center;
-}
-
-.seasons {
-    margin-left: 5%;
+.section {
+    background: #f8f9fa;
+    padding: 15px;
+    margin-bottom: 15px;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
 .search-container {
-    display: grid;
-    grid-template-columns: 30% 67%;
+    display: flex;
+    flex-wrap: wrap;
     justify-content: space-between;
+    gap: 10px;
 }
 
-input, select, button {
-    margin: 5px 0;
-    padding: 5px;
+.search-container .section {
+    flex: 1;
+    min-width: 300px;
 }
 
-table {
+.label-input label, .evaluation label {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: bold;
+}
+
+.period label {
     width: 100%;
-    border-collapse: collapse;
-    margin-top: 10px;
+    font-weight: bold;
 }
 
-th, td {
-    border: 1px solid #ccc;
-    padding: 8px;
-    text-align: center;
-}
-
-th {
-    background-color: #f4f4f4;
-}
-
-.button {
-    background-color: #007BFF;
-    color: white;
-    padding: 10px 15px;
-    border: none;
-    cursor: pointer;
-    display: block;
-    margin: auto auto;
-}
-
-.button:hover {
-    background-color: #0056b3;
+.period select {
+    width: 30%;
+    padding: 10px;
+    margin: 8px 3% 0 3%;
+    border-radius: 5px;
+    border: 1px solid #ddd;
+    font-size: 16px;
+    text-align: left;
 }
 
 #map {
     height: 400px;
     width: 100%;
-    display: none;
     margin-top: 20px;
+    border-radius: 10px;
+    display: none;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 }
