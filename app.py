@@ -97,12 +97,16 @@ def get_stations_within_radius(lat, lon, radius, limit):
 def fetch_station_data(station_id, start_year, end_year):
     try:
         headers = {"token": NOAA_API_TOKEN}
-        start_date = f"{start_year}-01-01"
-        end_date = f"{end_year}-12-31"
-        url = f"{DATA_URL}&stationid={station_id}&startdate={start_date}&enddate={end_date}"
-        response = requests.get(url, headers=headers)
-        response.raise_for_status()
-        return response.json(), 200
+        all_data = []
+        for year in range(start_year, end_year + 1):
+            start_date = f"{year}-01-01"
+            end_date = f"{year}-12-31"
+            url = f"{DATA_URL}&stationid={station_id}&startdate={start_date}&enddate={end_date}&limit=1000"
+            response = requests.get(url, headers=headers)
+            response.raise_for_status()
+            data = response.json().get("results", [])
+            all_data.extend(data)
+        return {"data": all_data}, 200
     except Exception as e:
         return {"message": f"Error fetching station data: {str(e)}"}, 500
 
