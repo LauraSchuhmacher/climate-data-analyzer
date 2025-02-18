@@ -102,7 +102,6 @@ def fetch_station_data(station_id, start_year, end_year):
         url = f"{DATA_URL}&stationid={station_id}&startdate={start_date}&enddate={end_date}"
         response = requests.get(url, headers=headers)
         response.raise_for_status()
-        data=response.json()
         averages=calculate_averages(response.json())
         return averages, 200
     except Exception as e:
