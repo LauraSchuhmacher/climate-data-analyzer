@@ -82,9 +82,17 @@ def haversine(lat1, lon1, lat2, lon2):
     c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
     return R * c
 
-def get_stations_within_radius(lat, lon, radius):
+def get_stations_within_radius(lat, lon, radius, limit):
     stations = read_data(STATIONS_FILE).get("stations", [])
-    return [station for station in stations if "latitude" in station and "longitude" in station and haversine(lat, lon, station["latitude"], station["longitude"]) <= radius]
+    stations_with_distance = []
+    for station in stations:
+        if "latitude" in station and "longitude" in station:
+            distance = haversine(lat, lon, station["latitude"], station["longitude"])
+            if distance <= radius:
+                station["distance"] = distance  # Entfernung zur Station hinzufügen
+                stations_with_distance.append(station)
+        stations_sorted = sorted(stations_with_distance, key=lambda station: station["distance"])
+    return stations_sorted[:limit]
 
 def fetch_station_data(station_id, start_year, end_year):
     try:
@@ -105,8 +113,8 @@ class StationsResource(Resource):
         return stations, 200
 
 class StationsWithinRadiusResource(Resource):
-    def get(self, latitude, longitude, radius):
-        return get_stations_within_radius(latitude, longitude, radius)
+    def get(self, latitude, longitude, radius, limit):
+        return get_stations_within_radius(latitude, longitude, radius, limit)
 
 class StationDataResource(Resource):
     def get(self, station_id, start_year, end_year):
@@ -114,7 +122,7 @@ class StationDataResource(Resource):
 
 # Routen hinzufügen
 api.add_resource(StationsResource, "/stations")
-api.add_resource(StationsWithinRadiusResource, "/stations-within-radius/<float(signed=True):latitude>/<float(signed=True):longitude>/<int:radius>")
+api.add_resource(StationsWithinRadiusResource, "/stations-within-radius/<float(signed=True):latitude>/<float(signed=True):longitude>/<int:radius>/<int:limit>")
 api.add_resource(StationDataResource, "/station-data/<string:station_id>/<int:start_year>/<int:end_year>")
 
 if __name__ == "__main__":
