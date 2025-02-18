@@ -114,7 +114,7 @@ class StationDataResource(Resource):
 
 # Routen hinzufügen
 api.add_resource(StationsResource, "/stations")
-api.add_resource(StationsWithinRadiusResource, "/stations-within-radius/<float:latitude>/<float:longitude>/<int:radius>")
+api.add_resource(StationsWithinRadiusResource, "/stations-within-radius/<float(signed=True):latitude>/<float(signed=True):longitude>/<int:radius>")
 api.add_resource(StationDataResource, "/station-data/<string:station_id>/<int:start_year>/<int:end_year>")
 
 if __name__ == "__main__":
