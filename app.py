@@ -106,6 +106,7 @@ def fetch_station_data(station_id, start_year, end_year):
             response.raise_for_status()
             data = response.json().get("results", [])
             all_data.extend(data)
+            time.sleep(1)  # Warte eine Sekunde vor der nächsten Anfrage.
         return {"data": all_data}, 200
     except Exception as e:
         return {"message": f"Error fetching station data: {str(e)}"}, 500
