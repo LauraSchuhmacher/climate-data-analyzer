@@ -3,7 +3,7 @@ import requests
 import time
 import datetime
 import math
-from flask import Flask, request, send_from_directory
+from flask import Flask, send_from_directory
 from flask_restful import Api, Resource
 
 app = Flask(__name__, static_folder="static")
@@ -102,9 +102,81 @@ def fetch_station_data(station_id, start_year, end_year):
         url = f"{DATA_URL}&stationid={station_id}&startdate={start_date}&enddate={end_date}"
         response = requests.get(url, headers=headers)
         response.raise_for_status()
-        return response.json(), 200
+        data=response.json()
+        averages=calculate_averages(response.json())
+        return averages, 200
     except Exception as e:
         return {"message": f"Error fetching station data: {str(e)}"}, 500
+
+def calculate_averages(data):
+    seasonal_months = {
+        "spring": {3, 4, 5},
+        "summer": {6, 7, 8},
+        "fall": {9, 10, 11},
+        "winter": {12, 1, 2},
+    }
+
+    year_data = {}
+
+    for entry in data["results"]:
+        try:
+            date = datetime.datetime.strptime(entry["date"], "%Y-%m-%dT%H:%M:%S")
+            year = date.year
+            month = date.month
+
+            winter_year = year if month != 12 else year + 1
+
+            datatype = entry.get("datatype")
+            value = entry.get("value")
+
+            if datatype not in {"TMAX", "TMIN"} or value is None:
+                continue  # Überspringe Eintrag wenn kein TMAX oder TMIN Wert vorhanden ist.
+
+            if year not in year_data:
+                year_data[year] = {
+                    "tmax": [], "tmin": [],
+                    "seasons": {season: {"tmax": [], "tmin": []} for season in seasonal_months}
+                }
+
+            # Füge den Wert zur entsprechenden Liste hinzu
+            if datatype == "TMAX":
+                year_data[year]["tmax"].append(value)
+            elif datatype == "TMIN":
+                year_data[year]["tmin"].append(value)
+
+            for season, months in seasonal_months.items():
+                if month in months:
+                    if season == "winter":
+                        if winter_year not in year_data:
+                            year_data[winter_year] = {
+                                "tmax": [], "tmin": [],
+                                "seasons": {season: {"tmax": [], "tmin": []} for season in seasonal_months}
+                            }
+                        if datatype == "TMAX":
+                            year_data[winter_year]["seasons"]["winter"]["tmax"].append(value)
+                        elif datatype == "TMIN":
+                            year_data[winter_year]["seasons"]["winter"]["tmin"].append(value)
+                    else:
+                        if datatype == "TMAX":
+                            year_data[year]["seasons"][season]["tmax"].append(value)
+                        elif datatype == "TMIN":
+                            year_data[year]["seasons"][season]["tmin"].append(value)
+        except Exception as e:
+            print(f"Skipping entry due to error: {e}, entry: {entry}")
+
+    result = []
+    for year, values in sorted(year_data.items()):
+        yearly_tmax = round(sum(values["tmax"]) / len(values["tmax"]), 1) if values["tmax"] else None
+        yearly_tmin = round(sum(values["tmin"]) / len(values["tmin"]), 1) if values["tmin"] else None
+
+        season_averages = {}
+        for season, temps in values["seasons"].items():
+            season_averages[f"{season}_tmax"] = (round(sum(temps["tmax"]) / len(temps["tmax"]), 1) if temps["tmax"] else None)
+            season_averages[f"{season}_tmin"] = (round(sum(temps["tmin"]) / len(temps["tmin"]), 1) if temps["tmin"] else None)
+
+        result.append({"year": year, "tmax": yearly_tmax, "tmin": yearly_tmin, **season_averages})
+    result.pop()  # Letztes Jahr entfernen. Es enthält nur unvollständige Daten.
+    return result
 
 # API
 class StationsResource(Resource):
@@ -127,4 +199,4 @@ api.add_resource(StationDataResource, "/station-data/<string:station_id>/<int:st
 
 if __name__ == "__main__":
     fetch_stations()
-    app.run(debug=True, host="0.0.0.0", port=5000)
+    app.run(debug=False, host="0.0.0.0", port=5000)
