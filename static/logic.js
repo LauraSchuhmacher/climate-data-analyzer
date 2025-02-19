@@ -65,18 +65,25 @@ document.getElementById('evaluateButton').addEventListener('click', async () => 
     const startYear = document.getElementById('startYear').value;
     const endYear = document.getElementById('endYear').value;
     const displayType = document.getElementById('displayType').value;
-    const season = document.getElementById('seasons').value;
 
     try {
         const response = await fetch(`/station-data/${selectedStationId}/${startYear}/${endYear}`);
         const data = await response.json();
 
-        if (displayType === 'graphic' || displayType === 'both') {
-            renderChart(data, season);
+        if (displayType === 'graphic') {
+            renderChart(data);
             toggleMap();
+            document.querySelector('.table-data').innerHTML = '';
         }
-        if (displayType === 'table' || displayType === 'both') {
+        if (displayType === 'table') {
             renderTable(data);
+            chartInstance.destroy();
+            legendContainer.innerHTML = ''; // Container leeren
+        }
+        if (displayType === 'both') {
+            renderTable(data);
+            renderChart(data);
+            toggleMap();
         }
     } catch (error) {
         console.error("Fehler beim Abrufen der Stationsdaten:", error);
@@ -166,7 +173,7 @@ function renderTable(data) {
         tableHtml += `<tr><td>${entry.year}</td><td>${entry.tmax}</td><td>${entry.tmin}</td><td>${entry.spring_tmax || '-'} </td><td>${entry.spring_tmin || '-'}</td><td>${entry.summer_tmax || '-'}</td><td>${entry.summer_tmin || '-'}</td><td>${entry.fall_tmax || '-'}</td><td>${entry.fall_tmin || '-'}</td><td>${entry.winter_tmax || '-'}</td><td>${entry.winter_tmin || '-'}</td></tr>`;
     });
     tableHtml += `</tbody></table>`;
-    document.querySelector('.search-results').innerHTML = tableHtml;
+    document.querySelector('.table-data').innerHTML = tableHtml;
 }
 
 function toggleMap() {

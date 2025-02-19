@@ -76,6 +76,10 @@ input {
     gap: 10px;
 }
 
+.search-results {
+    margin-bottom: 20px; 
+}
+
 .search-container .section {
     flex: 1;
     min-width: 300px;
