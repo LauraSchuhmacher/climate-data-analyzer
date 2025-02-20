@@ -32,7 +32,10 @@
                         <label>Suchradius (in km): <input type="number" id="radius" value="80"></label>
                     </div>
                     <div class="label-input">
-                        <label>Max. Anzahl Stationen: <input type="number" id="limit" value="10"></label>
+                        <label>Max. Anzahl Stationen: <input type="number" id="limit" value="10" max="10"></label>
+                    </div>
+                    <div class="period">
+                        <label>Zeitraum (Jahr): <select id="startYear" type="number" name="startYear" value="1850"></select> <span class="dash">-</span> <select id="endYear" type="number" name="endYear" value="2023"></select> </label>
                     </div>
                     <div>
                         <button class="button">Stationen suchen</button> 
@@ -43,9 +46,6 @@
 
         <div class="section">
             <h2>Auswertung</h2>
-            <div class="period">
-                <label>Zeitraum (Jahr): <select id="startYear" type="number" name="startYear" value="1850"></select> <span class="dash">-</span> <select id="endYear" type="number" name="endYear" value="2023"></select> </label>
-            </div>
             <div class="evaluation">
                 <div>
                     <label>Anzeigetyp:
@@ -62,7 +62,7 @@
             </div>
             <div class="search-results">
             </div>
-            <div id="chart-container" style="height:400px;"></div>
+            <div id="chart-container"></div>
             <div id="custom-legend"></div>
             <div class="table-data">
             </div>

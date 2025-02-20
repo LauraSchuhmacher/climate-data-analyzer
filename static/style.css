@@ -61,6 +61,10 @@ input {
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
 
+#chart-container {
+    transition: height 0.3s ease-in-out;
+}
+
 .section {
     background: #f8f9fa;
     padding: 15px;
