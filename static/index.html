@@ -6,7 +6,6 @@
     <title>Wetterdaten-Analyse</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
     <link rel="stylesheet" href="/static/style.css">
-    <!-- <link rel="logic" href="style.css"> -->
     <script src="/static/logic.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
@@ -23,9 +22,6 @@
                 <div class="label-input">
                     <label>Breitengrad: <input type="number" step="any" id="latitude" placeholder="Breitengrad"></label>
                 </div>
-            </div>
-        
-            <div class="section">
                 <h2>Suchradius & Konfiguration</h2>
                 <div class="configuration">
                     <div class="label-input">
@@ -41,7 +37,12 @@
                         <button class="button">Stationen suchen</button> 
                     </div>
                 </div>
-            </div>         
+            </div>
+        
+            <div class="section">
+                <!-- Karte wird hier angezeigt -->
+                <div id="map"></div>
+            </div>
         </div>
 
         <div class="section">
@@ -63,13 +64,10 @@
             <div class="search-results">
             </div>
             <div id="chart-container"></div>
-            <div id="custom-legend"></div>
             <div class="table-data">
             </div>
         </div>
-        
-        <div id="map"></div>
-        </div>
+    </div>
 
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script src="/static/logic.js"></script>

@@ -62,6 +62,7 @@ populateYearOptions();
 startYearSelect.value = 1850;
 endYearSelect.value = 2024;
 
+
 // Begrenze Eingabewert von Max. Anzahl Stationen auf 10
 document.getElementById('limit').addEventListener('input', function() {
     if (parseInt(this.value) > 10) {
@@ -70,26 +71,114 @@ document.getElementById('limit').addEventListener('input', function() {
   });
 
 
+
+
 let selectedStationId = null;
 let chartInstance = null;
 
-// Event-Listener für Stationssuche
+let map; // globale Variable für die Karte
+let userMarker; // globaler Marker für die vom Nutzer angegebene Koordinate
+let radiusCircle; // globaler Kreis für den Radius
+let stationCircles = []; // Array, um die Kreise für die Stationen zu speichern
+
+// Initialisierung der Karte
+document.addEventListener('DOMContentLoaded', function () {
+    const initialLat = 52.5162; 
+    const initialLon = 13.3777;
+    const initialZoom = 5;
+
+    map = L.map('map').setView([initialLat, initialLon], initialZoom);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);
+
+    // Initialer Marker
+    userMarker = L.marker([initialLat, initialLon]).addTo(map);
+    radiusCircle = L.circle([initialLat, initialLon], { radius: 1000, color: 'blue', fillColor: 'blue', fillOpacity: 0.2 }).addTo(map); // Initialer Radius
+});
+
+let selectedMarker = null;
+let stationMarkers = [];  // Array für alle Marker der Stationen
+
+// Füge Marker und hervorgehobene Marker hinzu
 async function searchStations() {
     const latitude = parseFloat(document.getElementById('latitude').value).toFixed(2);
     const longitude = parseFloat(document.getElementById('longitude').value).toFixed(2);
-    const radius = document.getElementById('radius').value;
+    const radius = parseInt(document.getElementById('radius').value); // Radius aus dem Eingabefeld
     const limit = document.getElementById('limit').value;
 
+    // Setze die Ansicht der Karte auf die neuen Koordinaten
+    map.setView([latitude, longitude], 8);
+
+    // Entferne den alten Marker und Radius (falls vorhanden)
+    if (userMarker) {
+        map.removeLayer(userMarker); // Entferne den alten Marker
+    }
+    if (radiusCircle) {
+        map.removeLayer(radiusCircle); // Entferne den alten Radius-Kreis
+    }
+
+    // Füge neuen Marker hinzu
+    userMarker = L.marker([latitude, longitude]).addTo(map);
+
+    // Füge einen neuen Radius-Kreis hinzu (blau eingefärbt)
+    radiusCircle = L.circle([latitude, longitude], {
+        radius: radius,
+        color: 'blue', // Farbe des Kreises
+        fillColor: 'blue', // Füllfarbe
+        fillOpacity: 0.2 // Transparenz
+    }).addTo(map);
+
+    // Lösche alle alten Stationen-Kreise und Marker
+    stationMarkers.forEach(marker => {
+        map.removeLayer(marker); // Entferne alte Marker
+    });
+    stationMarkers = []; // Leere das Array
+
+    // Hole die Stationen aus dem Server
     try {
         const response = await fetch(`/stations-within-radius/${latitude}/${longitude}/${radius}/${limit}`);
         const stations = await response.json();
         displayStations(stations);
+
+        // Füge Marker für jede Station hinzu
+        stations.forEach(station => {
+            // Erstelle einen benutzerdefinierten Icon-HTML-Inhalt
+            const stationIcon = L.divIcon({
+                className: 'station-icon',
+                html: '<div class="station-circle"><span>S</span></div>',
+                iconSize: [20, 20],  // Größe des gesamten Icons
+                iconAnchor: [20, 20],  // Position des Texts (zentriert im Kreis)
+                popupAnchor: [0, -20]  // Position des Popups (optional)
+            });
+
+            // Erstelle den Marker für die Station
+            const stationMarker = L.marker([station.latitude, station.longitude], {
+                icon: stationIcon
+            }).addTo(map);
+
+            // Füge Popup für jede Station hinzu
+            stationMarker.bindPopup(`
+                <b>${station.name}</b><br>
+                Latitude: ${station.latitude}<br>
+                Longitude: ${station.longitude}<br>
+                Mindate: ${station.mindate}<br>
+                Maxdate: ${station.maxdate}
+            `);
+
+            // Speichere den Marker mit der zugehörigen Station
+            stationMarkers.push({ stationId: station.id, marker: stationMarker });
+        });
     } catch (error) {
         console.error("Fehler beim Abrufen der Daten:", error);
     }
 }
 
+
+// Event-Listener für den Button "Stationen suchen"
 document.querySelector('.button').addEventListener('click', searchStations);
+
 
 function displayStations(stations) {
     let tableHtml = `<table><thead><tr><th>ID</th><th>Name</th><th>Breite</th><th>Länge</th><th>Mindate</th><th>Maxdate</th></tr></thead><tbody>`;
@@ -98,14 +187,54 @@ function displayStations(stations) {
     });
     tableHtml += `</tbody></table>`;
     document.querySelector('.search-results').innerHTML = tableHtml;
+
+    // Event-Listener für die Tabellenzeilen
     document.querySelectorAll('.station-row').forEach(row => {
         row.addEventListener('click', function () {
+            // Alle Zeilen zurücksetzen
             document.querySelectorAll('.station-row').forEach(r => r.classList.remove('selected'));
             this.classList.add('selected');
             selectedStationId = this.getAttribute('data-id');
+            console.log('Selected Station ID:', selectedStationId);
+
+            // Marker für die ausgewählte Station hervorgehoben
+            highlightSelectedMarker();
         });
     });
 }
+
+// Funktion zum Hervorheben des Markers
+function highlightSelectedMarker() {
+    // Falls bereits ein Marker hervorgehoben wurde, zurücksetzen
+    if (selectedMarker) {
+        selectedMarker.setIcon(L.divIcon({
+            className: 'station-icon',
+            html: '<div class="station-circle"><span>S</span></div>',
+            iconSize: [20, 20],
+            iconAnchor: [20, 20],
+            popupAnchor: [0, -20]
+        }));
+    }
+
+    // Finde den Marker für die ausgewählte Station
+    const selectedStation = stationMarkers.find(item => item.stationId == selectedStationId);
+    if (selectedStation) {
+        selectedMarker = selectedStation.marker;
+
+        // Den Marker hervorheben (größer machen und andere Farbe)
+        selectedMarker.setIcon(L.divIcon({
+            className: 'station-icon selected-marker',
+            html: '<div class="station-circle selected"><span>S</span></div>',
+            iconSize: [30, 30],  // Größerer Marker
+            iconAnchor: [30, 30],
+            popupAnchor: [0, -30]
+        }));
+
+        // Karte auf die ausgewählte Station zoomen
+        map.setView(selectedMarker.getLatLng(), 12); // Zoom-Level anpassen
+    }
+}
+
 
 document.getElementById('evaluateButton').addEventListener('click', async () => {
     if (!selectedStationId) {
