@@ -90,8 +90,17 @@ let stationMarkers = [];
 
 // Füge Marker und hervorgehobene Marker hinzu
 async function searchStations() {
-    const latitude = parseFloat(document.getElementById('latitude').value).toFixed(4);
-    const longitude = parseFloat(document.getElementById('longitude').value).toFixed(4);
+    const latInput = document.getElementById('latitude').value;
+    const lonInput = document.getElementById('longitude').value;
+
+    //Error-Handling
+    if(latInput.trim() === "" || lonInput.trim() === ""){
+        alert("Bitte geben Sie Längen- & Breitengrad an!");
+        return;
+    }
+
+    const latitude = parseFloat(latInput).toFixed(4);
+    const longitude = parseFloat(lonInput).toFixed(4);
     const radius = document.getElementById('radius').value;
     const limit = document.getElementById('limit').value;
 
@@ -104,6 +113,9 @@ async function searchStations() {
     if (radiusCircle) {
         map.removeLayer(radiusCircle); // Entferne den alten Radius-Kreis
     }
+    if(selectedStationId){
+        selectedStationId = null; // Entferne ID der zuvor ausgewählten Station
+        }
 
     // Entferne den hervorgehobenen Marker (falls vorhanden)
     if (selectedMarker) {
