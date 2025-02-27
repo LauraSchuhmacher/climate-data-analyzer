@@ -14,6 +14,10 @@ NOAA_API_TOKEN = "RZmWvwwkDhFRcpXBTzOrdxnCokqMqYBW"
 STATIONS_URL = "https://www.ncei.noaa.gov/cdo-web/api/v2/stations?datasetid=GSOM&limit=1000"
 DATA_URL = "https://www.ncei.noaa.gov/cdo-web/api/v2/data?datasetid=GSOM&datatypeid=TMAX&datatypeid=TMIN&units=metric&limit=1000"
 
+DATA_URL_AWS = "http://noaa-ghcn-pds.s3.amazonaws.com/csv/by_station"
+STATIONS_URL_AWS = "http://noaa-ghcn-pds.s3.amazonaws.com/ghcnd-stations.txt"
+INVENTORY_URL_AWS = "http://noaa-ghcn-pds.s3.amazonaws.com/ghcnd-inventory.txt"
+
 @app.route("/")
 def serve_frontend():
     return send_from_directory("static", "Index.html")
@@ -31,8 +35,85 @@ def write_data(file_path, data):
     with open(file_path, "w") as file:
         json.dump(data, file, indent=4)
 
+# Alle Stationen abrufen
+def fetch_stations(station_url):
+    response = requests.get(station_url)
+    if response.status_code != 200:
+        raise Exception(f"Failed to fetch station data: {response.status_code}")
+    
+    station_dict = {}
+    lines = response.text.splitlines()
+    
+    for line in lines:
+        if len(line) < 85:
+            continue  # Überspringe unvollständige Zeilen
+        
+        station = {
+            "id": line[0:11].strip(),
+            "latitude": float(line[12:20].strip()),
+            "longitude": float(line[21:30].strip()),
+            "elevation": float(line[31:37].strip()) if line[31:37].strip() != "" else None,
+            "state": line[38:40].strip() if line[38:40].strip() != "" else None,
+            "name": line[41:71].strip(),
+            "gsn_flag": line[72:75].strip() if line[72:75].strip() != "" else None,
+            "hcn_flag": line[76:79].strip() if line[76:79].strip() != "" else None,
+            "wmo_id": line[80:85].strip() if line[80:85].strip() != "" else None,
+            "mindate": None,
+            "maxdate": None
+        }
+        station_dict[station["id"]] = station
+    
+    return station_dict
+
+# Inventardaten für alle Stationen abrufen
+def fetch_inventory_data(inventory_url, station_dict):
+    response = requests.get(inventory_url)
+    if response.status_code != 200:
+        raise Exception(f"Failed to fetch inventory data: {response.status_code}")
+    
+    lines = response.text.splitlines()
+    
+    for line in lines:
+        if len(line) < 45:
+            continue  # Überspringe unvollständige Zeilens
+        
+        station_id = line[0:11].strip()
+        element = line[31:35].strip()
+        first_year = int(line[36:40].strip()) if line[36:40].strip().isdigit() else None
+        last_year = int(line[41:45].strip()) if line[41:45].strip().isdigit() else None
+        
+        if station_id in station_dict and element in ["TMAX", "TMIN"] and first_year and last_year:
+            if station_dict[station_id]["mindate"] is None or first_year > station_dict[station_id]["mindate"]:
+                station_dict[station_id]["mindate"] = first_year
+            if station_dict[station_id]["maxdate"] is None or last_year < station_dict[station_id]["maxdate"]:
+                station_dict[station_id]["maxdate"] = last_year
+    
+    return list(station_dict.values())
+
+# Stationsliste aktualisieren
+def update_stations():
+    try:
+        # Prüfe ob Stationsliste dieses Jahr schon abgerufen wurde.
+        last_update = read_data(STATIONS_FILE).get("last_update")
+        if last_update:
+            last_update_year = datetime.datetime.strptime(last_update, "%Y-%m-%d").year
+            current_year = datetime.datetime.now().year
+            if last_update_year == current_year:
+                return
+
+        stations = fetch_stations(STATIONS_URL_AWS)
+        stations = fetch_inventory_data(INVENTORY_URL_AWS, stations)
+
+        stations_data = {
+            "last_update": datetime.datetime.now().strftime("%Y-%m-%d"),
+            "stations": stations
+        }
+        write_data(STATIONS_FILE, stations_data)
+    except Exception as e:
+        print(f"Unexpected error in update_stations: {str(e)}")
+
 # Stationsliste abrufen
-def fetch_stations():
+def fetch_stations_api():
     try:
         # Prüfe ob Stationsliste dieses Jahr schon abgerufen wurde.
         last_update = read_data(STATIONS_FILE).get("last_update")
@@ -74,6 +155,7 @@ def fetch_stations():
     except Exception as e:
         print(f"Unexpected error in fetch_stations: {str(e)}")
 
+# Haversine-Formel zur Berechnung der Entfernung zwischen zwei Koordinaten
 def haversine(lat1, lon1, lat2, lon2):
     R = 6371  # Radius of Earth in km
     dlat = math.radians(lat2 - lat1)
@@ -82,6 +164,7 @@ def haversine(lat1, lon1, lat2, lon2):
     c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
     return R * c
 
+# Stationen innerhalb eines Radius abrufen
 def get_stations_within_radius(lat, lon, radius, limit):
     stations = read_data(STATIONS_FILE).get("stations", [])
     stations_with_distance = []
@@ -94,7 +177,61 @@ def get_stations_within_radius(lat, lon, radius, limit):
         stations_sorted = sorted(stations_with_distance, key=lambda station: station["distance"])
     return stations_sorted[:limit]
 
+# Stationsdaten parsen
+def parse_station_data(station_data, start_year, end_year):
+    lines = station_data.splitlines()
+    header = lines.pop(0).strip()  # Entferne die Kopfzeile
+
+    station_data = {"results": []}
+
+    for line in lines:
+        try:
+            line = line.strip()
+            if not line:  # Überspringe leere Zeilen
+                continue
+
+            parts = line.split(",")
+
+            date = parts[1].strip()
+            datatype = parts[2].strip()
+            value = parts[3].strip()
+
+            # Parse Jahr aus Datum
+            try:
+                year = int(date[:4])
+            except ValueError:
+                print(f"Invalid date format: {date}")
+                continue
+
+            if start_year <= year <= end_year:
+                if datatype in {"TMAX", "TMIN"}:
+                    station_data["results"].append({
+                        "date": parts[1].strip(),
+                        "datatype": datatype,
+                        "value": int(value) if value != "NA" else None,
+                    })
+
+        except Exception as e:
+            print(f"Skipping line due to error: {e}, line: {line}")
+
+    return station_data
+
+
+# Daten einer Station abrufen
 def fetch_station_data(station_id, start_year, end_year):
+    try:
+        url = f"{DATA_URL_AWS}/{station_id}.csv"
+        response = requests.get(url)
+        response.raise_for_status()
+        parsed_station_data = parse_station_data(response.text, start_year, end_year)
+        averages=calculate_averages(parsed_station_data)
+        return averages, 200
+    except Exception as e:
+        return {"message": f"Error fetching station data: {str(e)}"}, 500
+
+
+# Daten einer Station abrufen
+def fetch_station_data_api(station_id, start_year, end_year):
     try:
         headers = {"token": NOAA_API_TOKEN}
         start_date = f"{start_year}-01-01"
@@ -107,6 +244,7 @@ def fetch_station_data(station_id, start_year, end_year):
     except Exception as e:
         return {"message": f"Error fetching station data: {str(e)}"}, 500
 
+# Durchschnittstemperaturen der einzelnen Jahre/Jahreszeiten berechnen
 def calculate_averages(data):
     seasonal_months = {
         "spring": {3, 4, 5},
@@ -119,11 +257,11 @@ def calculate_averages(data):
 
     for entry in data["results"]:
         try:
-            date = datetime.datetime.strptime(entry["date"], "%Y-%m-%dT%H:%M:%S")
+            date = datetime.datetime.strptime(entry["date"], "%Y%m%d")
             year = date.year
             month = date.month
 
-            winter_year = year if month != 12 else year + 1
+            winter_year = year if month != 12 else year - 1
 
             datatype = entry.get("datatype")
             value = entry.get("value")
@@ -165,19 +303,19 @@ def calculate_averages(data):
 
     result = []
     for year, values in sorted(year_data.items()):
-        yearly_tmax = round(sum(values["tmax"]) / len(values["tmax"]), 1) if values["tmax"] else None
-        yearly_tmin = round(sum(values["tmin"]) / len(values["tmin"]), 1) if values["tmin"] else None
+        yearly_tmax = round(sum(values["tmax"]) / len(values["tmax"]) / 10, 1) if values["tmax"] else None
+        yearly_tmin = round(sum(values["tmin"]) / len(values["tmin"]) / 10, 1) if values["tmin"] else None
 
         season_averages = {}
         for season, temps in values["seasons"].items():
-            season_averages[f"{season}_tmax"] = (round(sum(temps["tmax"]) / len(temps["tmax"]), 1) if temps["tmax"] else None)
-            season_averages[f"{season}_tmin"] = (round(sum(temps["tmin"]) / len(temps["tmin"]), 1) if temps["tmin"] else None)
+            season_averages[f"{season}_tmax"] = (round(sum(temps["tmax"]) / len(temps["tmax"]) / 10, 1) if temps["tmax"] else None)
+            season_averages[f"{season}_tmin"] = (round(sum(temps["tmin"]) / len(temps["tmin"]) / 10, 1) if temps["tmin"] else None)
 
         result.append({"year": year, "tmax": yearly_tmax, "tmin": yearly_tmin, **season_averages})
-    result.pop()  # Letztes Jahr entfernen. Es enthält nur unvollständige Daten.
+    result.pop(0)  # Erstes Jahr entfernen. Es enthält unvollständige Daten.
     return result
 
-# API
+# API-Ressourcen definieren
 class StationsResource(Resource):
     def get(self):
         stations = read_data(STATIONS_FILE)
@@ -197,5 +335,5 @@ api.add_resource(StationsWithinRadiusResource, "/stations-within-radius/<float(s
 api.add_resource(StationDataResource, "/station-data/<string:station_id>/<int:start_year>/<int:end_year>")
 
 if __name__ == "__main__":
-    fetch_stations()
+    update_stations()
     app.run(debug=False, host="0.0.0.0", port=5000)
