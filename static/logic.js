@@ -93,7 +93,7 @@ async function searchStations() {
     const latInput = document.getElementById('latitude').value;
     const lonInput = document.getElementById('longitude').value;
 
-    //Error-Handling
+    //Error handling
     if(latInput.trim() === "" || lonInput.trim() === ""){
         alert("Bitte geben Sie Längen- & Breitengrad an!");
         return;
@@ -384,10 +384,4 @@ function renderTable(data) {
 
     tableHtml += `</tbody></table>`;
     document.querySelector('.table-data').innerHTML = tableHtml;
-}
-
-function toggleMap() {
-    if (!selectedStationId) return;
-    let mapDiv = document.getElementById('map');
-    mapDiv.style.display = 'block';
 }
