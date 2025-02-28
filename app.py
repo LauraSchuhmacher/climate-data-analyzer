@@ -10,6 +10,7 @@ app = Flask(__name__, static_folder="static")
 api = Api(app)
 
 STATIONS_FILE = "stations.json"
+
 NOAA_API_TOKEN = "RZmWvwwkDhFRcpXBTzOrdxnCokqMqYBW"
 STATIONS_URL = "https://www.ncei.noaa.gov/cdo-web/api/v2/stations?datasetid=GSOM&limit=1000"
 DATA_URL = "https://www.ncei.noaa.gov/cdo-web/api/v2/data?datasetid=GSOM&datatypeid=TMAX&datatypeid=TMIN&units=metric&limit=1000"
@@ -187,8 +188,8 @@ def parse_station_data(station_data, start_year, end_year):
     for line in lines:
         try:
             line = line.strip()
-            if not line:  # Überspringe leere Zeilen
-                continue
+            if not line:  
+                continue  # Überspringe leere Zeilen
 
             parts = line.split(",")
 
@@ -206,7 +207,7 @@ def parse_station_data(station_data, start_year, end_year):
             if start_year <= year <= end_year:
                 if datatype in {"TMAX", "TMIN"}:
                     station_data["results"].append({
-                        "date": parts[1].strip(),
+                        "date": date,
                         "datatype": datatype,
                         "value": int(value) if value != "NA" else None,
                     })
@@ -215,7 +216,6 @@ def parse_station_data(station_data, start_year, end_year):
             print(f"Skipping line due to error: {e}, line: {line}")
 
     return station_data
-
 
 # Daten einer Station abrufen
 def fetch_station_data(station_id, start_year, end_year):
@@ -228,7 +228,6 @@ def fetch_station_data(station_id, start_year, end_year):
         return averages, 200
     except Exception as e:
         return {"message": f"Error fetching station data: {str(e)}"}, 500
-
 
 # Daten einer Station abrufen
 def fetch_station_data_api(station_id, start_year, end_year):
@@ -261,7 +260,7 @@ def calculate_averages(data):
             year = date.year
             month = date.month
 
-            winter_year = year if month != 12 else year - 1
+            winter_year = year if month != 12 else year + 1
 
             datatype = entry.get("datatype")
             value = entry.get("value")
@@ -312,7 +311,7 @@ def calculate_averages(data):
             season_averages[f"{season}_tmin"] = (round(sum(temps["tmin"]) / len(temps["tmin"]) / 10, 1) if temps["tmin"] else None)
 
         result.append({"year": year, "tmax": yearly_tmax, "tmin": yearly_tmin, **season_averages})
-    result.pop(0)  # Erstes Jahr entfernen. Es enthält unvollständige Daten.
+    result.pop()  # Letztes Jahr entfernen. Es enthält unvollständige Daten.
     return result
 
 # API-Ressourcen definieren
