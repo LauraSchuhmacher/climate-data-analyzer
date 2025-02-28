@@ -1,14 +1,13 @@
 // Variablen initialisieren
-let startYear = 1850, endYear = 2024;
+let startYear = 1763, endYear = 2024;
 const [startYearSelect, endYearSelect] = [document.getElementById('startYear'), document.getElementById('endYear')];
 [startYearSelect.value, endYearSelect.value] = [startYear, endYear];
 
 let selectedStationId = null, chartInstance = null, map, userMarker, radiusCircle;
 let stationCircles = [], selectedMarker = null, stationMarkers = [];
+let lat = null, lon = null;
 const searchButton = document.getElementById('searchButton'), 
       evaluateButton = document.getElementById('evaluateButton'),
-      radius = document.getElementById('radius').value,
-      limit = document.getElementById('limit').value,
       chartContainer = document.getElementById('chart-container'),
       tableDataContainer = document.getElementById('table-data');
 
@@ -60,15 +59,29 @@ function setupEventListeners() {
     evaluateButton.addEventListener('click', evaluateStation);
 }
 
-// Input-Limit für Anzahl Stationen
-function setupInputLimits(value) {
-    const limit = document.getElementById('limit');
+// Input-Limit für Anzahl Stationen & Suchradius
+function setupInputLimits() {
+    // const limit = document.getElementById('limit');
     limit.addEventListener('input', () => {
         if (parseInt(limit.value) > 10) {
             limit.value = 10;
+        } 
+        if (parseInt(limit.value) < 1) {
+            limit.value = 1;
+        }
+    });
+
+    const radius = document.getElementById('radius');
+    radius.addEventListener('input', () => {
+        if (parseInt(radius.value) > 100) {
+            radius.value = 100;
+        } 
+        if (parseInt(radius.value) < 1) {
+            radius.value = 1;
         }
     });
 }
+
 
 // Startjahr Auswahl 
 function handleStartYearChange() {
@@ -105,8 +118,8 @@ async function searchStations() {
         return;
     }
 
-    const lat = parseFloat(latInput).toFixed(4);
-    const lon = parseFloat(lonInput).toFixed(4);
+    lat = parseFloat(latInput).toFixed(4);
+    lon = parseFloat(lonInput).toFixed(4);
 
     // Lösche bestehende Markierungen, Diagramme, Tabellen & Stationen-Markierungen auf der Karte
     clearChartAndTable();
@@ -117,6 +130,7 @@ async function searchStations() {
     try {
         const response = await fetch(`/stations-within-radius/${lat}/${lon}/${radius}/${limit}`);
         const stations = await response.json();
+
         displayStations(stations);
     } catch (error) {
         console.error("Fehler beim Abrufen der Daten:", error);
@@ -143,6 +157,10 @@ function updateUserLocation(lat, lon, radius) {
 }
 
 function displayStations(stations) {
+    if (stations.length === 0) {
+        alert("Es wurden keine Stationen gefunden, die den Suchkriterien entsprechen!")
+    }
+
     let tableHtml = `<table><thead><tr><th>ID</th><th>Name</th><th>Breite</th><th>Länge</th><th>Mindate</th><th>Maxdate</th></tr></thead><tbody>`;
     
     stations.forEach(station => {
@@ -264,8 +282,14 @@ async function evaluateStation() {
 
     try {
         const response = await fetch(`/station-data/${selectedStationId}/${startYear}/${endYear}`);
-        const data = await response.json();
+        let data = await response.json();
+
         if (data && data.length > 0) {
+            // Wenn Station in Südhalbkugel, tausche die Jahreszeiten
+            if (parseFloat(lat) < 0) {
+                data = swapSeasonsForSouthernHemisphere(data);
+            }
+
             renderDisplay(data, displayType);  // Diese Funktion stellt das Diagramm und die Tabelle dar
 
             // Anzeigen der Container basierend auf dem gewählten Anzeigetyp
@@ -382,6 +406,44 @@ function renderTable(data) {
     tableHtml += `</tbody></table>`;
     tableDataContainer.innerHTML = tableHtml;
 }
+
+// Funktion zum Tauschen der Jahreszeiten für die Südhalbkugel
+function swapSeasonsForSouthernHemisphere(data) {
+    console.log("Daten vor dem Tausch:", JSON.stringify(data, null, 2)); // Ausgabe der gesamten Datenstruktur
+    
+    data.forEach(entry => {
+        // Überprüfen der Felder
+        if (!entry.hasOwnProperty("spring_tmax") || !entry.hasOwnProperty("spring_tmin") || 
+            !entry.hasOwnProperty("summer_tmax") || !entry.hasOwnProperty("summer_tmin") || 
+            !entry.hasOwnProperty("fall_tmax") || !entry.hasOwnProperty("fall_tmin") || 
+            !entry.hasOwnProperty("winter_tmax") || !entry.hasOwnProperty("winter_tmin")) {
+                
+            console.error("Fehlende Felder in den Daten:", entry);
+        } else {
+            console.log("Vor Tausch:", entry);
+            
+            // Tausche Frühling (spring) mit Herbst (fall)
+            let tempSpringTmax = entry.spring_tmax;
+            let tempSpringTmin = entry.spring_tmin;
+            entry.spring_tmax = entry.fall_tmax;
+            entry.spring_tmin = entry.fall_tmin;
+            entry.fall_tmax = tempSpringTmax;
+            entry.fall_tmin = tempSpringTmin;
+
+            // Tausche Winter (winter) mit Sommer (summer)
+            let tempSummerTmax = entry.summer_tmax;
+            let tempSummerTmin = entry.summer_tmin;
+            entry.summer_tmax = entry.winter_tmax;
+            entry.summer_tmin = entry.winter_tmin;
+            entry.winter_tmax = tempSummerTmax;
+            entry.winter_tmin = tempSummerTmin;
+
+            console.log("Nach Tausch:", entry); // Ausgabe nach dem Tausch
+        }
+    });
+    return data;
+}
+
 
 // Fließkommazahlen formatieren
 function formatFloat(value) {
