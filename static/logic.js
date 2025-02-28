@@ -22,6 +22,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Initialisiere Map
 function initializeMap(){
+    console.log("Initialisiere Karte");
     const initialLat = 52.5162; 
     const initialLon = 13.3777;
     const initialZoom = 5;
@@ -39,6 +40,7 @@ function initializeMap(){
 
 // Jahr-Optionen füllen
 function populateYearOptions() {
+    console.log("Befülle Zeitraum-Optionen");
     [startYearSelect, endYearSelect].forEach(select => {
         select.innerHTML = '';
         for (let year = startYear; year <= endYear; year++) {
@@ -53,6 +55,7 @@ function populateYearOptions() {
 
 // Event-Listener Setup
 function setupEventListeners() {
+    console.log("Setup Event-Listeners");
     startYearSelect.addEventListener('change', handleStartYearChange);
     endYearSelect.addEventListener('change', handleEndYearChange);
     searchButton.addEventListener('click', searchStations);
@@ -103,7 +106,7 @@ function updateYearOptions(year, select, type) {
 
 // Stationen suchen
 async function searchStations() {
-    console.log("searchStations");
+    console.log("Stationen suchen");
     selectedStationId = null;
     const latInput = latitude.value;
     const lonInput = longitude.value;
@@ -119,7 +122,6 @@ async function searchStations() {
     lat = parseFloat(latInput).toFixed(4);
     lon = parseFloat(lonInput).toFixed(4);
 
-    // Lösche bestehende Markierungen, Diagramme, Tabellen & Stationen-Markierungen auf der Karte
     clearAll();
 
     // Benutzer-Location aktualisieren
@@ -138,6 +140,7 @@ async function searchStations() {
 }
 
 function displayStations(stations) {
+    console.log("Stationen anzeigen");
     if (stations.length === 0) {
         alert("Es wurden keine Stationen gefunden, die den Suchkriterien entsprechen!");
     }
@@ -191,7 +194,7 @@ function displayStations(stations) {
 
 // Löscht bestehendes Diagramm, Tabelle, Stationsliste & Markierungen auf der Karte
 function clearAll() {
-    console.log("clearing chart, table, map, stationslist");
+    console.log("Lösche bestehendes Diagramm, Tabelle, Stationsliste & Markierungen auf der Karte");
 
     // Überprüfen, ob chartContainer existiert
     if (chartContainer) {
@@ -221,6 +224,7 @@ function clearAll() {
 }
 
 function highlightselectedStationAndMarker(stationId){
+    console.log("Hebe markierte Station hervor")
     // geklickte Station in Tabelle hervorheben
     document.querySelectorAll('.station-row').forEach(row => row.classList.remove('selected'));
     const row = document.querySelector(`.station-row[data-id="${stationId}"]`);
@@ -252,6 +256,8 @@ function highlightselectedStationAndMarker(stationId){
 
 // Stationen auswerten (Tabelle und Grafik anzeigen)
 async function evaluateStation() {
+    console.log("Station auswerten");
+
     if (!selectedStationId) {
         alert("Bitte zuerst eine Station auswählen!");
         return;
@@ -284,6 +290,7 @@ async function evaluateStation() {
 
 // Funktion zum Tauschen der Jahreszeiten für die Südhalbkugel
 function swapSeasonsForSouthernHemisphere(data) {
+    console.log("Jahreszeiten tauschen für Südhalbkugel");
     data.forEach(entry => {
             console.log("Vor Tausch:", entry);
             
@@ -310,6 +317,7 @@ function swapSeasonsForSouthernHemisphere(data) {
 
 // Darstellung von Tabelle und/oder Grafik
 function renderDisplay(data, displayType) {
+    console.log("Gewünschte Auswertung anzeigen");
     // Anzeigen der Container basierend auf dem gewählten Anzeigetyp
     if (displayType === 'graphic' || displayType === 'both') {
         renderChart(data);
