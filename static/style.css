@@ -2,8 +2,6 @@ body {
     font-family: 'Arial', sans-serif;
     background: linear-gradient(to right, #4facfe, #00f2fe);
     color: #333;
-    margin: 0;
-    padding: 0;
 }
 
 h1, h2 {
@@ -11,13 +9,60 @@ h1, h2 {
     color: #007BFF;
 }
 
+table {
+    width: 100%;
+    border-collapse: collapse;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    background: white;
+}
+
+th, td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+th {
+    background: #007BFF;
+    color: white;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+tr:nth-child(even) {
+    background: #f8f9fa;
+}
+
+tr:hover {
+    background: #d6e4ff;
+    cursor: pointer;
+}
+
+label {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: bold;
+}
+
+button, select, input {
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 16px;
+    box-sizing: border-box;    
+}
+
 button {
     width: 100%;
-    padding: 10px;
     margin: 8px 0;
-    border-radius: 5px;
-    border: 1px solid #ddd;
-    font-size: 16px;
+}
+
+input {
+    width: 60%;
+    margin: 8px 0 0 auto;
 }
 
 button.button {
@@ -31,24 +76,6 @@ button.button {
 
 button.button:hover {
     background: #0056b3;
-}
-
-select {
-    width: 50%;
-    padding: 10px;
-    margin: 8px 20%;
-    border-radius: 5px;
-    border: 1px solid #ddd;
-    font-size: 16px; 
-}
-
-input {
-    width: 60%;
-    padding: 10px;
-    margin: 8px 0 0 auto;
-    border-radius: 5px;
-    border: 1px solid #ddd;
-    font-size: 16px;
 }
 
 .container {
@@ -95,58 +122,18 @@ input {
     margin-top: 20px;
 }
 
-table {
-    width: 100%;
-    border-collapse: collapse;
-    border-radius: 8px;
-    overflow: hidden;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-    background: white;
-}
-
-th, td {
-    padding: 12px;
-    text-align: left;
-    border-bottom: 1px solid #ddd;
-}
-
-th {
-    background: #007BFF;
-    color: white;
-    font-weight: bold;
-    text-transform: uppercase;
-}
-
-tr:nth-child(even) {
-    background: #f8f9fa;
-}
-
-tr:hover {
-    background: #d6e4ff;
-    cursor: pointer;
-}
-
 .selected {
     background-color: #4facfe !important;
     color: white;
     font-weight: bold;
 }
 
-.label-input label, .evaluation label {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-weight: bold;
+#displayType {
+    width: 50%;
+    margin: 8px 20%;
 }
 
-.period label {
-    display: flex;
-    justify-content: flex-start;
-    align-items: center;
-    font-weight: bold;
-}
-
-.period select {
+#startYear, #endYear {
     width: 20%;
     padding: 1%;
     margin: 8px 4.7% 0 18.5%;
