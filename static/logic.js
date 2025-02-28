@@ -1,75 +1,28 @@
-const startYear = 1850;
-const endYear = 2024;
-const startYearSelect = document.getElementById('startYear');
-const endYearSelect = document.getElementById('endYear');
+// Variablen initialisieren
+let startYear = 1850, endYear = 2024;
+const [startYearSelect, endYearSelect] = [document.getElementById('startYear'), document.getElementById('endYear')];
+[startYearSelect.value, endYearSelect.value] = [startYear, endYear];
 
-// Funktion zum Befüllen der Optionen
-function populateYearOptions() {
-    startYearSelect.innerHTML = '';
-    endYearSelect.innerHTML = '';
+let selectedStationId = null, chartInstance = null, map, userMarker, radiusCircle;
+let stationCircles = [], selectedMarker = null, stationMarkers = [];
+const searchButton = document.getElementById('searchButton'), 
+      evaluateButton = document.getElementById('evaluateButton'),
+      radius = document.getElementById('radius').value,
+      limit = document.getElementById('limit').value,
+      chartContainer = document.getElementById('chart-container'),
+      tableDataContainer = document.getElementById('table-data');
 
-    for (let year = startYear; year <= endYear; year++) {
-        let startOption = document.createElement('option');
-        startOption.value = year;
-        startOption.textContent = year;
-        startYearSelect.appendChild(startOption);
-
-        let endOption = document.createElement('option');
-        endOption.value = year;
-        endOption.textContent = year;
-        endYearSelect.appendChild(endOption);
-    }
-    endYearSelect.value = 2024;
-}
-
-startYearSelect.addEventListener('change', function() {
-    let selectedStartYear = parseInt(startYearSelect.value);
-
-    // Endjahr-Optionen aktualisieren, sodass nur Jahre nach dem Startjahr angezeigt werden
-    for (let option of endYearSelect.options) {
-        if (parseInt(option.value) < selectedStartYear) {
-            option.disabled = true;  // Jahre vor dem Startjahr deaktivieren
-        } else {
-            option.disabled = false;  // Jahre nach dem Startjahr aktivieren
-        }
-    }
+// Setup
+document.addEventListener('DOMContentLoaded', () => {
+    console.log("DOM ist geladen");
+    initializeMap();
+    populateYearOptions();
+    setupEventListeners();
+    setupInputLimits();
 });
 
-endYearSelect.addEventListener('change', function() {
-    let selectedEndYear = parseInt(endYearSelect.value);
-
-    // Startjahr-Optionen aktualisieren, sodass nur Jahre vor dem Endjahr angezeigt werden
-    for (let option of startYearSelect.options) {
-        if (parseInt(option.value) > selectedEndYear) {
-            option.disabled = true;  // Jahre nach dem Endjahr deaktivieren
-        } else {
-            option.disabled = false;  // Jahre vor dem Endjahr aktivieren
-        }
-    }
-});
-
-populateYearOptions();
-startYearSelect.value = 1850;
-endYearSelect.value = 2024;
-
-
-// Begrenze Eingabewert von Max. Anzahl Stationen auf 10
-document.getElementById('limit').addEventListener('input', function() {
-    if (parseInt(this.value) > 10) {
-      this.value = 10;
-    }
-  });
-
-
-let selectedStationId = null;
-let chartInstance = null;
-let map;
-let userMarker;
-let radiusCircle;
-let stationCircles = [];
-
-// Initialisierung der Karte
-document.addEventListener('DOMContentLoaded', function () {
+// Initialisiere Map
+function initializeMap(){
     const initialLat = 52.5162; 
     const initialLon = 13.3777;
     const initialZoom = 5;
@@ -82,138 +35,201 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Initialer Marker
     userMarker = L.marker([initialLat, initialLon]).addTo(map);
-    radiusCircle = L.circle([initialLat, initialLon], { radius: 1000, color: 'blue', fillColor: 'blue', fillOpacity: 0.2 }).addTo(map); // Initialer Radius
-});
+    radiusCircle = L.circle([initialLat, initialLon], { radius: 1000, color: 'blue', fillColor: 'blue', fillOpacity: 0.2 }).addTo(map);
+}
 
-let selectedMarker = null;
-let stationMarkers = [];
+// Jahr-Optionen füllen
+function populateYearOptions() {
+    [startYearSelect, endYearSelect].forEach(select => {
+        select.innerHTML = '';
+        for (let year = startYear; year <= endYear; year++) {
+            const option = document.createElement('option');
+            option.value = year;
+            option.textContent = year;
+            select.appendChild(option);
+        }
+    });
+    endYearSelect.value = 2024;
+}
 
-// Füge Marker und hervorgehobene Marker hinzu
+// Event-Listener Setup
+function setupEventListeners() {
+    startYearSelect.addEventListener('change', handleStartYearChange);
+    endYearSelect.addEventListener('change', handleEndYearChange);
+    searchButton.addEventListener('click', searchStations);
+    evaluateButton.addEventListener('click', evaluateStation);
+}
+
+// Input-Limit für Anzahl Stationen
+function setupInputLimits(value) {
+    const limit = document.getElementById('limit');
+    limit.addEventListener('input', () => {
+        if (parseInt(limit.value) > 10) {
+            limit.value = 10;
+        }
+    });
+}
+
+// Startjahr Auswahl 
+function handleStartYearChange() {
+    const selectedStartYear = parseInt(startYearSelect.value);
+    updateYearOptions(selectedStartYear, endYearSelect, 'end');
+}
+
+// Endjahr Auswahl
+function handleEndYearChange() {
+    const selectedEndYear = parseInt(endYearSelect.value);
+    updateYearOptions(selectedEndYear, startYearSelect, 'start');
+}
+
+// Jahr-Optionen aktualisieren
+function updateYearOptions(year, select, type) {
+    for (let option of select.options) {
+        const optionYear = parseInt(option.value);
+        option.disabled = (type === 'start' && optionYear > year) || (type === 'end' && optionYear < year);
+    }
+}
+
+// Stationen suchen
 async function searchStations() {
-    const latInput = document.getElementById('latitude').value;
-    const lonInput = document.getElementById('longitude').value;
+    console.log("searchStations");
+    selectedStationId = null;
+    const latInput = latitude.value;
+    const lonInput = longitude.value;
 
-    //Error handling
-    if(latInput.trim() === "" || lonInput.trim() === ""){
+    const radius = parseInt(document.getElementById('radius').value);
+    const limit = parseInt(document.getElementById('limit').value);
+
+    if (latInput === "" || lonInput === "") {
         alert("Bitte geben Sie Längen- & Breitengrad an!");
         return;
     }
 
-    const latitude = parseFloat(latInput).toFixed(4);
-    const longitude = parseFloat(lonInput).toFixed(4);
-    const radius = document.getElementById('radius').value;
-    const limit = document.getElementById('limit').value;
+    const lat = parseFloat(latInput).toFixed(4);
+    const lon = parseFloat(lonInput).toFixed(4);
 
-    // Setze die Ansicht der Karte auf die neuen Koordinaten
-    map.setView([latitude, longitude], 8);
+    // Lösche bestehende Markierungen, Diagramme, Tabellen & Stationen-Markierungen auf der Karte
+    clearChartAndTable();
+    removeExistingStationMarkers();
 
-    if (userMarker) {
-        map.removeLayer(userMarker); // Entferne den alten Marker
-    }
-    if (radiusCircle) {
-        map.removeLayer(radiusCircle); // Entferne den alten Radius-Kreis
-    }
-    if(selectedStationId){
-        selectedStationId = null; // Entferne ID der zuvor ausgewählten Station
-        }
+    updateUserLocation(lat, lon, radius);
 
-    // Entferne den hervorgehobenen Marker (falls vorhanden)
-    if (selectedMarker) {
-        selectedMarker.setIcon(L.icon({
-            iconUrl: 'static/icons/station-icon.svg', // Standard-Icon zurücksetzen
-            iconSize: [30, 30],
-            iconAnchor: [15, 15]
-        }));
-        selectedMarker = null; // Setze selectedMarker zurück
-    }
-
-    // Füge neuen Marker hinzu
-    userMarker = L.marker([latitude, longitude]).addTo(map);
-
-    // Füge einen neuen Radius-Kreis hinzu
-    radiusCircle = L.circle([latitude, longitude], {
-        radius: radius * 1000, //Umrechnung km in m (Leaflet benötigt Radius in Metern)
-        color: 'blue',
-        fillColor: 'blue',
-        fillOpacity: 0.2 
-    }).addTo(map);
-
-    // Lösche alle alten Stationen-Kreise und Marker
-    stationMarkers.forEach(marker => {
-        map.removeLayer(marker);
-    });
-    stationMarkers = [];
-
-    // Hole die Stationen aus dem Server
     try {
-        const response = await fetch(`/stations-within-radius/${latitude}/${longitude}/${radius}/${limit}`);
+        const response = await fetch(`/stations-within-radius/${lat}/${lon}/${radius}/${limit}`);
         const stations = await response.json();
         displayStations(stations);
-
-        // Füge Marker für jede Station hinzu
-        stations.forEach(station => {
-            console.log(`Station: ${station.name}, Lat: ${station.latitude}, Lon: ${station.longitude}`);  // Debug-Ausgabe
-    
-            // Erstelle einen benutzerdefinierten Icon-HTML-Inhalt
-            const stationIcon = L.icon({
-                iconUrl: 'static/icons/station-icon.svg',
-                iconSize: [30, 30],
-                iconAnchor: [15, 15]
-            });
-
-            // Erstelle den Marker für die Station
-            const stationMarker = L.marker([station.latitude, station.longitude], {
-                icon: stationIcon
-            }).addTo(map);
-
-            // Füge Popup für jede Station hinzu
-            stationMarker.bindPopup(`
-                <b>${station.name}</b><br>
-                Latitude: ${station.latitude}<br>
-                Longitude: ${station.longitude}<br>
-                Mindate: ${station.mindate}<br>
-                Maxdate: ${station.maxdate}
-            `);
-
-            // Speichere den Marker mit der zugehörigen Station
-            stationMarkers.push({ stationId: station.id, marker: stationMarker });
-        });
     } catch (error) {
         console.error("Fehler beim Abrufen der Daten:", error);
     }
 }
 
+// Funktion zum Entfernen der bestehenden Stationen-Markierungen
+function removeExistingStationMarkers() {
+    stationMarkers.forEach(station => {
+        map.removeLayer(station.marker);
+    });
 
-// Event-Listener für den Button "Stationen suchen"
-document.querySelector('.button').addEventListener('click', searchStations);
+    stationMarkers = [];
+}
 
+// Benutzer-Location aktualisieren
+function updateUserLocation(lat, lon, radius) {
+    if (userMarker) map.removeLayer(userMarker);
+    if (radiusCircle) map.removeLayer(radiusCircle);
+
+    map.setView([lat, lon], 8);
+    userMarker = L.marker([lat, lon]).addTo(map);
+    radiusCircle = L.circle([lat, lon], { radius: radius * 1000, color: 'blue', fillColor: 'blue', fillOpacity: 0.2 }).addTo(map);
+}
 
 function displayStations(stations) {
     let tableHtml = `<table><thead><tr><th>ID</th><th>Name</th><th>Breite</th><th>Länge</th><th>Mindate</th><th>Maxdate</th></tr></thead><tbody>`;
+    
     stations.forEach(station => {
-        tableHtml += `<tr class="station-row" data-id="${station.id}"><td>${station.id}</td><td>${station.name}</td><td>${station.latitude}</td><td>${station.longitude}</td><td>${station.mindate}</td><td>${station.maxdate}</td></tr>`;
+        // Erstellen der Tabellenzeile
+        tableHtml += `<tr class="station-row" data-id="${station.id}">
+            <td>${station.id}</td>
+            <td>${station.name}</td>
+            <td>${station.latitude}</td>
+            <td>${station.longitude}</td>
+            <td>${station.mindate}</td>
+            <td>${station.maxdate}</td>
+        </tr>`;
+
+        // Erstellen des Markers
+        const stationIcon = L.icon({
+            iconUrl: 'static/icons/station-icon.svg',
+            iconSize: [30, 30],
+            iconAnchor: [15, 15]
+        });
+
+        const stationMarker = L.marker([station.latitude, station.longitude], {
+            icon: stationIcon
+        }).addTo(map);
+
+        // Füge Popup hinzu
+        stationMarker.bindPopup(`
+            <b>${station.name}</b><br>
+            Latitude: ${station.latitude}<br>
+            Longitude: ${station.longitude}<br>
+            Mindate: ${station.mindate}<br>
+            Maxdate: ${station.maxdate}
+        `);
+
+        // Füge Marker zur stationMarkers Liste hinzu
+        stationMarkers.push({ stationId: station.id, marker: stationMarker });
     });
+
     tableHtml += `</tbody></table>`;
     document.querySelector('.search-results').innerHTML = tableHtml;
 
-    // Event-Listener für die Tabellenzeilen
+    // Event Listener für Zeilen
     document.querySelectorAll('.station-row').forEach(row => {
-        row.addEventListener('click', function () {
-            // Alle Zeilen zurücksetzen
-            document.querySelectorAll('.station-row').forEach(r => r.classList.remove('selected'));
-            this.classList.add('selected');
-            selectedStationId = this.getAttribute('data-id');
-            console.log('Selected Station ID:', selectedStationId);
-
-            // Marker für die ausgewählte Station hervorgehoben
-            highlightSelectedMarker();
+        row.addEventListener('click', () => {
+            selectStation(row.getAttribute('data-id'));
         });
     });
 }
 
-// Funktion zum Hervorheben des Markers
+
+function clearChartAndTable() {
+    console.log("clearChartAndTable");
+
+    // Überprüfen, ob chartContainer existiert
+    if (chartContainer) {
+        if (chartInstance) {
+            chartInstance.destroy();
+            chartInstance = null;
+        }
+        chartContainer.style.display = 'none';
+    }
+
+    // Lösche die bestehende Tabelle
+    if (tableDataContainer) {
+        tableDataContainer.innerHTML = '';
+        tableDataContainer.style.display = 'none';
+    }
+
+    // Entferne alle Stationen Markierungen von der Karte
+    stationMarkers.forEach(station => {
+        map.removeLayer(station.marker);
+    });
+
+    // Leere die Liste der Stationen
+    stationMarkers = [];
+}
+
+// Station auswählen
+function selectStation(stationId) {
+    document.querySelectorAll('.station-row').forEach(row => row.classList.remove('selected'));
+    const row = document.querySelector(`.station-row[data-id="${stationId}"]`);
+    row.classList.add('selected');
+    selectedStationId = stationId;
+    highlightSelectedMarker();
+}
+
+// Marker hervorheben
 function highlightSelectedMarker() {
-    // Falls bereits ein Marker hervorgehoben wurde, zurücksetzen
     if (selectedMarker) {
         selectedMarker.setIcon(L.icon({
             iconUrl: 'static/icons/station-icon.svg',
@@ -222,90 +238,98 @@ function highlightSelectedMarker() {
         }));
     }
 
-    // Finde den Marker für die ausgewählte Station
-    const selectedStation = stationMarkers.find(item => item.stationId == selectedStationId);
+    const selectedStation = stationMarkers.find(item => item.stationId === selectedStationId);
     if (selectedStation) {
         selectedMarker = selectedStation.marker;
-
-        // Den Marker hervorheben (größer machen und andere Farbe)
         selectedMarker.setIcon(L.icon({
-            iconUrl: 'static/icons/selected-icon.svg',  // Pfad zum markierten Icon (SVG)
-            iconSize: [40, 40],  // Größe des markierten Icons
-            iconAnchor: [20, 20],  // Ankerposition in der Mitte des Icons
+            iconUrl: 'static/icons/selected-icon.svg',
+            iconSize: [40, 40],
+            iconAnchor: [20, 20],
             popupAnchor: [0, -30]
         }));
-
-        // Karte auf die ausgewählte Station zoomen
-        map.setView(selectedMarker.getLatLng(), 9); // Zoom-Level anpassen
+        map.setView(selectedMarker.getLatLng(), 9);
     }
 }
 
-
-document.getElementById('evaluateButton').addEventListener('click', async () => {
+// Stationen auswerten (Tabelle und Grafik anzeigen)
+async function evaluateStation() {
     if (!selectedStationId) {
         alert("Bitte zuerst eine Station auswählen!");
         return;
     }
 
-    const startYear = document.getElementById('startYear').value;
-    const endYear = document.getElementById('endYear').value;
+    startYear = startYearSelect.value;
+    endYear = endYearSelect.value;
     const displayType = document.getElementById('displayType').value;
 
     try {
         const response = await fetch(`/station-data/${selectedStationId}/${startYear}/${endYear}`);
         const data = await response.json();
+        if (data && data.length > 0) {
+            renderDisplay(data, displayType);  // Diese Funktion stellt das Diagramm und die Tabelle dar
 
-        const tableContainer = document.querySelector('.table-data');
-        const chartContainer = document.getElementById('chart-container');
+            // Anzeigen der Container basierend auf dem gewählten Anzeigetyp
+            if (displayType === 'graphic' || displayType === 'both') {
+                chartContainer.style.display = 'block';
+            } else {
+                chartContainer.style.display = 'none';
+            }
 
-        tableContainer.innerHTML = '';
-        chartContainer.innerHTML = '';
+            if (displayType === 'table' || displayType === 'both') {
+                tableDataContainer.style.display = 'block';
+            } else {
+                tableDataContainer.style.display = 'none';
+            }
 
-        if (chartInstance) {
-            chartInstance.destroy();
-            chartInstance = null;
-        }
-
-        if (displayType === 'graphic') {
-            renderChart(data);
-            chartContainer.style.height = '400px'; // Höhe setzen, wenn das Diagramm aktiv ist
         } else {
-            chartContainer.style.height = '0px'; // Höhe auf 0 setzen, wenn nur Tabelle sichtbar ist
-        }
-
-        if (displayType === 'table') {
-            renderTable(data);
-        }
-
-        if (displayType === 'both') {
-            renderTable(data);
-            renderChart(data);
-            chartContainer.style.height = '400px';
+            alert("Keine Daten für die ausgewählte Station im angegebenen Zeitraum!");
         }
     } catch (error) {
         console.error("Fehler beim Abrufen der Stationsdaten:", error);
     }
-});
+}
 
+// Darstellung von Tabelle und/oder Grafik
+function renderDisplay(data, displayType) {
+    clearChartAndTable();
 
-function renderChart(data) {
-    // Leere den Container und erstelle ein neues Canvas
-    const chartContainer = document.getElementById('chart-container');
-    chartContainer.innerHTML = ''; // Container leeren
-    const newCanvas = document.createElement('canvas');
-    newCanvas.id = 'chart';
-    chartContainer.appendChild(newCanvas);
-    
-    const ctx = newCanvas.getContext('2d');
-    
-    if (chartInstance) {
-        chartInstance.destroy();
+    if (displayType === 'graphic' || displayType === 'both') {
+        renderChart(data);
+        chartContainer.style.height = '400px';
+    } else {
+        chartContainer.style.height = '0px';
     }
-    
+
+    if (displayType === 'table' || displayType === 'both') {
+        renderTable(data);
+    }
+}
+
+// Grafik rendern
+function renderChart(data) {
+    const ctx = createCanvas('chart-container');
     const labels = data.map(entry => entry.year);
-    
-    // Standardmäßig nur TMAX & TMIN anzeigen
-    const datasets = [
+
+    const datasets = generateChartDatasets(data);
+    chartInstance = new Chart(ctx, {
+        type: 'line',
+        data: { labels, datasets },
+        options: chartOptions()
+    });
+}
+
+// Canvas erstellen
+function createCanvas(containerId) {
+    const container = document.getElementById(containerId);
+    container.innerHTML = '';
+    const canvas = document.createElement('canvas');
+    container.appendChild(canvas);
+    return canvas.getContext('2d');
+}
+
+// Chart-Datensätze generieren
+function generateChartDatasets(data) {
+    return [
         { label: 'TMAX', data: data.map(entry => entry.tmax), borderColor: 'red', fill: false },
         { label: 'TMIN', data: data.map(entry => entry.tmin), borderColor: 'blue', fill: false },
         { label: 'Frühling TMAX', data: data.map(entry => entry.spring_tmax || null), borderColor: 'SeaGreen', fill: false, hidden: true },
@@ -317,71 +341,54 @@ function renderChart(data) {
         { label: 'Winter TMAX', data: data.map(entry => entry.winter_tmax || null), borderColor: 'DarkViolet', fill: false, hidden: true },
         { label: 'Winter TMIN', data: data.map(entry => entry.winter_tmin || null), borderColor: 'Purple', fill: false, hidden: true }
     ];
-    
-    chartInstance = new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: labels,
-            datasets: datasets
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-                x: {
-                    title: {
-                        display: true,
-                        text: 'years' // X-Achse beschriften
-                    }
-                },
-                y: {
-                    title: {
-                        display: true,
-                        text: '°C' // Y-Achse mit Grad Celsius beschriften
-                    },
-                    ticks: {
-                        callback: function(value) {
-                            return value + ' °C'; // Zusätzliche Anzeige von °C bei den Y-Achsenwerten
-                        }
-                    }
-                }
+}
+
+// Chart-Optionen
+function chartOptions() {
+    return {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            x: {
+                title: { display: true, text: 'years' }
+            },
+            y: {
+                title: { display: true, text: '°C' },
+                ticks: { callback: value => `${value} °C` }
             }
         }
-    });
+    };
 }
 
-// zeige alle Werte mit einer Nachkommastelle an
-function formatFloat(value) {
-    return Number.isInteger(value) ? value.toFixed(1) : value;
-}
-
+// Tabelle rendern
 function renderTable(data) {
-    let tableHtml = `<table>
-        <thead>
-            <tr>
-                <th>Jahr</th><th>TMAX</th><th>TMIN</th><th>Frühling TMAX</th><th>Frühling TMIN</th>
-                <th>Sommer TMAX</th><th>Sommer TMIN</th><th>Herbst TMAX</th><th>Herbst TMIN</th>
-                <th>Winter TMAX</th><th>Winter TMIN</th>
-            </tr>
-        </thead>
-        <tbody>`;
-    
+    let tableHtml = `<table><thead><tr><th>Jahr</th><th>TMAX</th><th>TMIN</th><th>Frühling TMAX</th><th>Frühling TMIN</th>
+        <th>Sommer TMAX</th><th>Sommer TMIN</th><th>Herbst TMAX</th><th>Herbst TMIN</th><th>Winter TMAX</th><th>Winter TMIN</th></tr></thead><tbody>`;
+
     data.forEach(entry => {
-        tableHtml += `<tr>
-            <td>${entry.year}</td>
-            <td>${formatFloat(entry.tmax)}</td>
-            <td>${formatFloat(entry.tmin)}</td>
-            <td>${entry.spring_tmax !== undefined ? formatFloat(entry.spring_tmax) : '-'}</td>
-            <td>${entry.spring_tmin !== undefined ? formatFloat(entry.spring_tmin) : '-'}</td>
-            <td>${entry.summer_tmax !== undefined ? formatFloat(entry.summer_tmax) : '-'}</td>
-            <td>${entry.summer_tmin !== undefined ? formatFloat(entry.summer_tmin) : '-'}</td>
-            <td>${entry.fall_tmax !== undefined ? formatFloat(entry.fall_tmax) : '-'}</td>
-            <td>${entry.fall_tmin !== undefined ? formatFloat(entry.fall_tmin) : '-'}</td>
-            <td>${entry.winter_tmax !== undefined ? formatFloat(entry.winter_tmax) : '-'}</td>
-            <td>${entry.winter_tmin !== undefined ? formatFloat(entry.winter_tmin) : '-'}</td>
-        </tr>`;
+        tableHtml += `<tr><td>${entry.year}</td>
+        <td>${formatFloat(entry.tmax)}</td>
+        <td>${formatFloat(entry.tmin)}</td>
+        <td>${formatFloat(entry.spring_tmax)}</td>
+        <td>${formatFloat(entry.spring_tmin)}</td>
+        <td>${formatFloat(entry.summer_tmax)}</td>
+        <td>${formatFloat(entry.summer_tmin)}</td>
+        <td>${formatFloat(entry.fall_tmax)}</td>
+        <td>${formatFloat(entry.fall_tmin)}</td>
+        <td>${formatFloat(entry.winter_tmax)}</td>
+        <td>${formatFloat(entry.winter_tmin)}</td></tr>`;
     });
 
     tableHtml += `</tbody></table>`;
-    document.querySelector('.table-data').innerHTML = tableHtml;
+    tableDataContainer.innerHTML = tableHtml;
+}
+
+// Fließkommazahlen formatieren
+function formatFloat(value) {
+    // Wenn der Wert null oder undefined ist, gebe "-"
+    if (value === null || value === undefined) {
+        return '-';
+    }
+    // Wenn der Wert eine ganze Zahl ist, formatiere auf eine Dezimalstelle
+    return Number.isInteger(value) ? value.toFixed(1) : value;
 }
