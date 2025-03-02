@@ -208,22 +208,15 @@ def calculate_averages(data):
 
             if year not in year_data:
                 year_data[year] = {
-                    "tmax": [], "tmin": [],
                     "seasons": {season: {"tmax": [], "tmin": []} for season in seasonal_months}
                 }
 
             # Füge den Wert zur entsprechenden Liste hinzu
-            if datatype == "TMAX":
-                year_data[year]["tmax"].append(value)
-            elif datatype == "TMIN":
-                year_data[year]["tmin"].append(value)
-
             for season, months in seasonal_months.items():
                 if month in months:
                     if season == "winter":
                         if winter_year not in year_data:
                             year_data[winter_year] = {
-                                "tmax": [], "tmin": [],
                                 "seasons": {season: {"tmax": [], "tmin": []} for season in seasonal_months}
                             }
                         if datatype == "TMAX":
@@ -240,13 +233,12 @@ def calculate_averages(data):
 
     result = []
     for year, values in sorted(year_data.items()):
-        yearly_tmax = round(sum(values["tmax"]) / len(values["tmax"]) / 10, 1) if values["tmax"] else None
-        yearly_tmin = round(sum(values["tmin"]) / len(values["tmin"]) / 10, 1) if values["tmin"] else None
-
         season_averages = {}
         for season, temps in values["seasons"].items():
             season_averages[f"{season}_tmax"] = (round(sum(temps["tmax"]) / len(temps["tmax"]) / 10, 1) if temps["tmax"] else None)
             season_averages[f"{season}_tmin"] = (round(sum(temps["tmin"]) / len(temps["tmin"]) / 10, 1) if temps["tmin"] else None)
+        yearly_tmax = round(sum([temp for season, temp in season_averages.items() if "tmax" in season]) / 4, 1)
+        yearly_tmin = round(sum([temp for season, temp in season_averages.items() if "tmin" in season]) / 4, 1)
 
         result.append({"year": year, "tmax": yearly_tmax, "tmin": yearly_tmin, **season_averages})
     result.pop()  # Letztes Jahr entfernen. Es enthält unvollständige Daten.
