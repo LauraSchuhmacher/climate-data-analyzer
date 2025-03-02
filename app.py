@@ -11,10 +11,6 @@ api = Api(app)
 
 STATIONS_FILE = "stations.json"
 
-NOAA_API_TOKEN = "RZmWvwwkDhFRcpXBTzOrdxnCokqMqYBW"
-STATIONS_URL = "https://www.ncei.noaa.gov/cdo-web/api/v2/stations?datasetid=GSOM&limit=1000"
-DATA_URL = "https://www.ncei.noaa.gov/cdo-web/api/v2/data?datasetid=GSOM&datatypeid=TMAX&datatypeid=TMIN&units=metric&limit=1000"
-
 DATA_URL_AWS = "http://noaa-ghcn-pds.s3.amazonaws.com/csv/by_station"
 STATIONS_URL_AWS = "http://noaa-ghcn-pds.s3.amazonaws.com/ghcnd-stations.txt"
 INVENTORY_URL_AWS = "http://noaa-ghcn-pds.s3.amazonaws.com/ghcnd-inventory.txt"
@@ -56,9 +52,6 @@ def fetch_stations(station_url):
             "elevation": float(line[31:37].strip()) if line[31:37].strip() != "" else None,
             "state": line[38:40].strip() if line[38:40].strip() != "" else None,
             "name": line[41:71].strip(),
-            "gsn_flag": line[72:75].strip() if line[72:75].strip() != "" else None,
-            "hcn_flag": line[76:79].strip() if line[76:79].strip() != "" else None,
-            "wmo_id": line[80:85].strip() if line[80:85].strip() != "" else None,
             "mindate": None,
             "maxdate": None
         }
@@ -89,7 +82,9 @@ def fetch_inventory_data(inventory_url, station_dict):
             if station_dict[station_id]["maxdate"] is None or last_year < station_dict[station_id]["maxdate"]:
                 station_dict[station_id]["maxdate"] = last_year
     
-    return list(station_dict.values())
+        filtered_stations = {station_id: station for station_id, station in station_dict.items() if station["mindate"] and station["maxdate"]}
+
+    return list(filtered_stations.values())
 
 # Stationsliste aktualisieren
 def update_stations():
@@ -113,49 +108,6 @@ def update_stations():
     except Exception as e:
         print(f"Unexpected error in update_stations: {str(e)}")
 
-# Stationsliste abrufen
-def fetch_stations_api():
-    try:
-        # Prüfe ob Stationsliste dieses Jahr schon abgerufen wurde.
-        last_update = read_data(STATIONS_FILE).get("last_update")
-        if last_update:
-            last_update_year = datetime.datetime.strptime(last_update, "%Y-%m-%d").year
-            current_year = datetime.datetime.now().year
-            if last_update_year == current_year:
-                return
-
-        headers = {"token": NOAA_API_TOKEN}
-        all_stations = []
-        offset = 0
-
-        while True:
-            # Versuche die Stationsliste zu laden
-            while True:
-                try:
-                    response = requests.get(f"{STATIONS_URL}&offset={offset}", headers=headers)
-                    response.raise_for_status()
-                    data = response.json()
-                    break  # Abbruch wenn Liste erfolgreich geladen.
-                except Exception as e:
-                    print(f"Error fetching stations for offset {offset}: {str(e)}. Retrying")
-                    time.sleep(1)  # Warte eine Sekunde und versuche es dann erneut.
-
-            stations = data.get("results", [])
-            if not stations:
-                break
-
-            all_stations.extend(stations)
-            offset += 1001
-            time.sleep(1)  # Warte eine Sekunde vor der nächsten Anfrage.
-
-        stations_data = {
-            "last_update": datetime.datetime.now().strftime("%Y-%m-%d"),
-            "stations": all_stations
-        }
-        write_data(STATIONS_FILE, stations_data)
-    except Exception as e:
-        print(f"Unexpected error in fetch_stations: {str(e)}")
-
 # Haversine-Formel zur Berechnung der Entfernung zwischen zwei Koordinaten
 def haversine(lat1, lon1, lat2, lon2):
     R = 6371  # Radius of Earth in km
@@ -176,7 +128,7 @@ def get_stations_within_radius(lat, lon, radius, limit):
                 station["distance"] = distance  # Entfernung zur Station hinzufügen
                 stations_with_distance.append(station)
         stations_sorted = sorted(stations_with_distance, key=lambda station: station["distance"])
-    return stations_sorted[:limit]
+    return stations_sorted[:limit], 200
 
 # Stationsdaten parsen
 def parse_station_data(station_data, start_year, end_year):
@@ -229,20 +181,6 @@ def fetch_station_data(station_id, start_year, end_year):
     except Exception as e:
         return {"message": f"Error fetching station data: {str(e)}"}, 500
 
-# Daten einer Station abrufen
-def fetch_station_data_api(station_id, start_year, end_year):
-    try:
-        headers = {"token": NOAA_API_TOKEN}
-        start_date = f"{start_year}-01-01"
-        end_date = f"{end_year}-12-31"
-        url = f"{DATA_URL}&stationid={station_id}&startdate={start_date}&enddate={end_date}"
-        response = requests.get(url, headers=headers)
-        response.raise_for_status()
-        averages=calculate_averages(response.json())
-        return averages, 200
-    except Exception as e:
-        return {"message": f"Error fetching station data: {str(e)}"}, 500
-
 # Durchschnittstemperaturen der einzelnen Jahre/Jahreszeiten berechnen
 def calculate_averages(data):
     seasonal_months = {
@@ -270,22 +208,15 @@ def calculate_averages(data):
 
             if year not in year_data:
                 year_data[year] = {
-                    "tmax": [], "tmin": [],
                     "seasons": {season: {"tmax": [], "tmin": []} for season in seasonal_months}
                 }
 
             # Füge den Wert zur entsprechenden Liste hinzu
-            if datatype == "TMAX":
-                year_data[year]["tmax"].append(value)
-            elif datatype == "TMIN":
-                year_data[year]["tmin"].append(value)
-
             for season, months in seasonal_months.items():
                 if month in months:
                     if season == "winter":
                         if winter_year not in year_data:
                             year_data[winter_year] = {
-                                "tmax": [], "tmin": [],
                                 "seasons": {season: {"tmax": [], "tmin": []} for season in seasonal_months}
                             }
                         if datatype == "TMAX":
@@ -302,13 +233,12 @@ def calculate_averages(data):
 
     result = []
     for year, values in sorted(year_data.items()):
-        yearly_tmax = round(sum(values["tmax"]) / len(values["tmax"]) / 10, 1) if values["tmax"] else None
-        yearly_tmin = round(sum(values["tmin"]) / len(values["tmin"]) / 10, 1) if values["tmin"] else None
-
         season_averages = {}
         for season, temps in values["seasons"].items():
             season_averages[f"{season}_tmax"] = (round(sum(temps["tmax"]) / len(temps["tmax"]) / 10, 1) if temps["tmax"] else None)
             season_averages[f"{season}_tmin"] = (round(sum(temps["tmin"]) / len(temps["tmin"]) / 10, 1) if temps["tmin"] else None)
+        yearly_tmax = round(sum([temp for season, temp in season_averages.items() if "tmax" in season]) / 4, 1)
+        yearly_tmin = round(sum([temp for season, temp in season_averages.items() if "tmin" in season]) / 4, 1)
 
         result.append({"year": year, "tmax": yearly_tmax, "tmin": yearly_tmin, **season_averages})
     result.pop()  # Letztes Jahr entfernen. Es enthält unvollständige Daten.
