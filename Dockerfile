@@ -14,6 +14,9 @@ COPY . .
 # Container-Port definieren
 EXPOSE 5000
 
+# ENV PYTHONUNBUFFERED=1
+
 # Befehl zum Starten der Anwendung
+# CMD ["python", "-u", "app.py"]
 CMD ["python", "app.py"]
 

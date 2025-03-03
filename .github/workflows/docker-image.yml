@@ -1,4 +1,4 @@
-name: Docker Image CI
+name: Docker Image
 
 on:
   push:
@@ -7,12 +7,19 @@ on:
     branches: [ "main" ]
 
 jobs:
-
   build:
-
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
-    - name: Build the Docker image
-      run: docker build . --file Dockerfile --tag my-image-name:$(date +%s)
+      - uses: actions/checkout@v4
+
+      - name: Set image tag
+        id: image_tag
+        shell: pwsh
+        run: |
+          $timestamp = Get-Date -UFormat "%s"
+          Write-Output "tag=my-image-name:$timestamp" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+
+      - name: Build the Docker image
+        shell: pwsh
+        run: docker build . --file Dockerfile --tag ${{ steps.image_tag.outputs.tag }}

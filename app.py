@@ -9,6 +9,7 @@ from flask_restful import Api, Resource
 app = Flask(__name__, static_folder="static")
 api = Api(app)
 
+
 STATIONS_FILE = "stations.json"
 
 DATA_URL_AWS = "http://noaa-ghcn-pds.s3.amazonaws.com/csv/by_station"
@@ -81,8 +82,8 @@ def fetch_inventory_data(inventory_url, station_dict):
                 station_dict[station_id]["mindate"] = first_year
             if station_dict[station_id]["maxdate"] is None or last_year < station_dict[station_id]["maxdate"]:
                 station_dict[station_id]["maxdate"] = last_year
-    
-        filtered_stations = {station_id: station for station_id, station in station_dict.items() if station["mindate"] and station["maxdate"]}
+        
+    filtered_stations = {station_id: station for station_id, station in station_dict.items() if station["mindate"] and station["maxdate"]}
 
     return list(filtered_stations.values())
 
@@ -128,6 +129,7 @@ def get_stations_within_radius(lat, lon, radius, limit):
                 station["distance"] = distance  # Entfernung zur Station hinzufügen
                 stations_with_distance.append(station)
         stations_sorted = sorted(stations_with_distance, key=lambda station: station["distance"])
+
     return stations_sorted[:limit], 200
 
 # Stationsdaten parsen
@@ -177,6 +179,7 @@ def fetch_station_data(station_id, start_year, end_year):
         response.raise_for_status()
         parsed_station_data = parse_station_data(response.text, start_year, end_year)
         averages=calculate_averages(parsed_station_data)
+
         return averages, 200
     except Exception as e:
         return {"message": f"Error fetching station data: {str(e)}"}, 500
@@ -237,11 +240,12 @@ def calculate_averages(data):
         for season, temps in values["seasons"].items():
             season_averages[f"{season}_tmax"] = (round(sum(temps["tmax"]) / len(temps["tmax"]) / 10, 1) if temps["tmax"] else None)
             season_averages[f"{season}_tmin"] = (round(sum(temps["tmin"]) / len(temps["tmin"]) / 10, 1) if temps["tmin"] else None)
-        yearly_tmax = round(sum([temp for season, temp in season_averages.items() if "tmax" in season]) / 4, 1)
-        yearly_tmin = round(sum([temp for season, temp in season_averages.items() if "tmin" in season]) / 4, 1)
+            yearly_tmax = round(sum([temp for season, temp in season_averages.items() if "tmax" in season and temp is not None]) / 4, 1)
+            yearly_tmin = round(sum([temp for season, temp in season_averages.items() if "tmin" in season and temp is not None]) / 4, 1)
 
         result.append({"year": year, "tmax": yearly_tmax, "tmin": yearly_tmin, **season_averages})
     result.pop()  # Letztes Jahr entfernen. Es enthält unvollständige Daten.
+
     return result
 
 # API-Ressourcen definieren
