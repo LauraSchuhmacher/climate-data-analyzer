@@ -92,6 +92,18 @@ button.button:hover {
     transition: height 0.3s ease-in-out;
 }
 
+.input-error {
+    border: 2px solid red !important;
+    background-color: #ffe6e6;
+    outline: none;
+    transition: background 0.3s ease;
+}
+
+.input-error:focus {
+    background-color: #ffcccc;
+}
+
+
 .section {
     background: #f8f9fa;
     padding: 15px;

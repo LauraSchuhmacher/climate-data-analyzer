@@ -10,6 +10,7 @@ const searchButton = document.getElementById('searchButton'),
       evaluateButton = document.getElementById('evaluateButton'),
       chartContainer = document.getElementById('chart-container'),
       tableDataContainer = document.getElementById('table-data');
+      stationsContainer = document.getElementById('search-results');
 
 // Setup
 document.addEventListener('DOMContentLoaded', () => {
@@ -60,6 +61,43 @@ function setupEventListeners() {
     endYearSelect.addEventListener('change', handleEndYearChange);
     searchButton.addEventListener('click', searchStations);
     evaluateButton.addEventListener('click', evaluateStation);
+    document.addEventListener('keydown', preventInputValues);
+}
+
+// leere Pflichtfelder unterbinden
+function validateRequiredFields() {
+    const requiredFields = [document.getElementById('longitude'), document.getElementById('latitude'), document.getElementById('radius'), document.getElementById('limit')];
+    let isValid = true;
+
+    requiredFields.forEach(field => {
+        if (field.value.trim() === '') {
+            field.classList.add('input-error');
+            isValid = false;
+        } else {
+            field.classList.remove('input-error');
+        }
+    });
+
+    if (!isValid) {
+        alert("Bitte füllen Sie alle Pflichtfelder aus!");
+    }
+
+    return isValid;
+}
+
+// Inputs verbieten
+function preventInputValues(e) {
+    // E-Werte verbieten
+    if (e.target.type === 'number' && (e.key === 'e' || e.key === 'E')) {
+        e.preventDefault();
+        alert("Exponentielle Eingaben sind nicht erlaubt!");
+    }
+
+    // Float für Max. Anzahl Stationen verbieten
+    if (e.target.id === 'limit' && (e.key === '.' || e.key === ',')) {
+        e.preventDefault();
+        alert("Kommazahlen sind für \"Max. Anzahl Stationen\" nicht erlaubt!");
+    }
 }
 
 // Input-Limit für Anzahl Stationen & Suchradius
@@ -126,23 +164,17 @@ function updateYearOptions(year, select, type) {
 async function searchStations() {
     console.log("Stationen suchen");
     selectedStationId = null;
-    const latInput = latitude.value;
-    const lonInput = longitude.value;
+    lat = parseFloat(latitude.value).toFixed(4);
+    lon = parseFloat(longitude.value).toFixed(4);
     startYear = parseInt(startYearSelect.value);
     endYear = parseInt(endYearSelect.value);
-
     const radius = parseInt(document.getElementById('radius').value);
     const limit = parseInt(document.getElementById('limit').value);
 
-    if (latInput === "" || lonInput === "") {
-        alert("Bitte geben Sie Längen- & Breitengrad an!");
-        return;
+    clear('all');
+    if (!validateRequiredFields()) {
+        return; // Stoppt die Funktion, wenn Pflichtfelder leer sind
     }
-
-    lat = parseFloat(latInput).toFixed(4);
-    lon = parseFloat(lonInput).toFixed(4);
-
-    clearAll();
 
     // Benutzer-Location aktualisieren
     map.setView([lat, lon], 8);
@@ -203,46 +235,52 @@ function displayStations(stations) {
     });
 
     tableHtml += `</tbody></table>`;
-    document.querySelector('.search-results').innerHTML = tableHtml;
+    stationsContainer.innerHTML = tableHtml;
+    stationsContainer.style.display = 'block';
 
     // Event Listener für Zeilen
     document.querySelectorAll('.station-row').forEach(row => {
         row.addEventListener('click', () => {
+            clear('data');
             highlightselectedStationAndMarker(row.getAttribute('data-id'));
         });
     });
 }
 
-// Löscht bestehendes Diagramm, Tabelle, Stationsliste & Markierungen auf der Karte
-function clearAll() {
-    console.log("Lösche bestehendes Diagramm, Tabelle, Stationsliste & Markierungen auf der Karte");
+// Löscht bestehendes Diagramm, Tabelle, Stationsliste & Markierungen auf der Karte - sofern gewünscht
+function clear(mode = 'all') {
+    console.log(`Lösche bestehende Daten mit Modus: ${mode}`);
 
-    // Überprüfen, ob chartContainer existiert
-    if (chartContainer) {
-        if (chartInstance) {
-            chartInstance.destroy();
-            chartInstance = null;
+    if (mode === 'all') {
+        if (stationsContainer) {
+            stationsContainer.innerHTML = '';
+            stationsContainer.style.display = 'none';
         }
-        chartContainer.style.display = 'none';
+        if (userMarker) map.removeLayer(userMarker);
+        if (radiusCircle) map.removeLayer(radiusCircle);
+
+        stationMarkers.forEach(station => {
+            map.removeLayer(station.marker);
+        });
+        stationMarkers = [];
     }
 
-    // Lösche die bestehende Tabelle
-    if (tableDataContainer) {
-        tableDataContainer.innerHTML = '';
-        tableDataContainer.style.display = 'none';
+    if (mode === 'all' || mode === 'data') {
+        if (chartContainer) {
+            if (chartInstance) {
+                chartInstance.destroy();
+                chartInstance = null;
+            }
+            chartContainer.style.display = 'none';
+        }
+
+        if (tableDataContainer) {
+            tableDataContainer.innerHTML = '';
+            tableDataContainer.style.display = 'none';
+        }
     }
-
-    if (userMarker) map.removeLayer(userMarker);
-    if (radiusCircle) map.removeLayer(radiusCircle);
-
-    // Entferne alle Stationen Markierungen von der Karte
-    stationMarkers.forEach(station => {
-        map.removeLayer(station.marker);
-    });
-
-    // Leere die Liste der Stationen
-    stationMarkers = [];
 }
+
 
 function highlightselectedStationAndMarker(stationId){
     console.log("Hebe markierte Station hervor")
