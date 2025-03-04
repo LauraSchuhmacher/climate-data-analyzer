@@ -17,10 +17,18 @@ INVENTORY_URL_AWS = "http://noaa-ghcn-pds.s3.amazonaws.com/ghcnd-inventory.txt"
 
 @app.route("/")
 def serve_frontend():
+    """Serve the frontend HTML file from the static directory."""
     return send_from_directory("static", "Index.html")
 
 # Daten aus der JSON-Datei lesen
 def read_data(file_path):
+    """Read data from a JSON file.
+
+    Args:
+        file_path (str): Path to the JSON file.
+    Returns:
+        dict: Data read from the file, or an empty dictionary if file not found or invalid.
+    """
     try:
         with open(file_path, "r") as file:
             return json.load(file)
@@ -29,11 +37,24 @@ def read_data(file_path):
 
 # Daten in die JSON-Datei schreiben
 def write_data(file_path, data):
+    """Write data to a JSON file.
+
+    Args:
+        file_path (str): Path to the JSON file.
+        data (dict): Data to write.
+    """
     with open(file_path, "w") as file:
         json.dump(data, file, indent=4)
 
 # Alle Stationen abrufen
 def fetch_stations(station_url):
+    """Fetch station metadata from the NOAA station file.
+
+    Args:
+        station_url (str): URL to the station data.
+    Returns:
+        dict: Dictionary of station metadata indexed by station ID.
+    """
     response = requests.get(station_url)
     if response.status_code != 200:
         raise Exception(f"Failed to fetch station data: {response.status_code}")
@@ -61,6 +82,14 @@ def fetch_stations(station_url):
 
 # Inventardaten für alle Stationen abrufen
 def fetch_inventory_data(inventory_url, station_dict):
+    """Fetch inventory data to update station metadata with available data periods.
+
+    Args:
+        inventory_url (str): URL to the inventory data.
+        station_dict (dict): Dictionary of station metadata.
+    Returns:
+        list: List of station metadata including min and max available dates.
+    """
     response = requests.get(inventory_url)
     if response.status_code != 200:
         raise Exception(f"Failed to fetch inventory data: {response.status_code}")
@@ -88,6 +117,7 @@ def fetch_inventory_data(inventory_url, station_dict):
 
 # Stationsliste aktualisieren
 def update_stations():
+    """Update station list if it hasn't been updated in the current year."""
     try:
         # Prüfe ob Stationsliste dieses Jahr schon abgerufen wurde.
         last_update = read_data(STATIONS_FILE).get("last_update")
@@ -110,6 +140,14 @@ def update_stations():
 
 # Haversine-Formel zur Berechnung der Entfernung zwischen zwei Koordinaten
 def haversine(lat1, lon1, lat2, lon2):
+    """Calculate the great circle distance between two points on the earth.
+
+    Args:
+        lat1, lon1 (float): Latitude and longitude of the first point.
+        lat2, lon2 (float): Latitude and longitude of the second point.
+    Returns:
+        float: Distance between the points in kilometers.
+    """
     R = 6371  # Radius of Earth in km
     dlat = math.radians(lat2 - lat1)
     dlon = math.radians(lon2 - lon1)
@@ -119,6 +157,21 @@ def haversine(lat1, lon1, lat2, lon2):
 
 # Stationen innerhalb eines Radius abrufen
 def get_stations_within_radius(lat, lon, radius, limit, start_year, end_year):
+    """
+    Retrieves weather stations within a specified radius that have data for a given time range.
+
+    Args:
+        lat (float): Latitude of the center point.
+        lon (float): Longitude of the center point.
+        radius (int): Radius in kilometers.
+        limit (int): Maximum number of stations to return.
+        start_year (int): Start year of the data range.
+        end_year (int): End year of the data range.
+
+    Returns:
+        list: List of stations within the specified radius, sorted by distance.
+        int: HTTP status code (200 if successful).
+    """
     stations = read_data(STATIONS_FILE).get("stations", [])
     stations_with_distance = []
     
@@ -139,6 +192,17 @@ def get_stations_within_radius(lat, lon, radius, limit, start_year, end_year):
 
 # Stationsdaten parsen
 def parse_station_data(station_data, start_year, end_year):
+    """
+    Parses station data from CSV format into a structured dictionary.
+
+    Args:
+        station_data (str): Raw CSV data as a string.
+        start_year (int): Start year of the data range.
+        end_year (int): End year of the data range.
+
+    Returns:
+        dict: Dictionary containing parsed station data with temperature values.
+    """
     lines = station_data.splitlines()
     header = lines.pop(0).strip()  # Entferne die Kopfzeile
 
@@ -178,6 +242,18 @@ def parse_station_data(station_data, start_year, end_year):
 
 # Daten einer Station abrufen
 def fetch_station_data(station_id, start_year, end_year):
+    """
+    Fetches and parses station data from a remote CSV file.
+
+    Args:
+        station_id (str): ID of the weather station.
+        start_year (int): Start year of the data range.
+        end_year (int): End year of the data range.
+
+    Returns:
+        dict: Parsed station data with calculated averages.
+        int: HTTP status code (200 if successful, 500 if an error occurs).
+    """
     try:
         url = f"{DATA_URL_AWS}/{station_id}.csv"
         response = requests.get(url)
@@ -191,6 +267,15 @@ def fetch_station_data(station_id, start_year, end_year):
 
 # Durchschnittstemperaturen der einzelnen Jahre/Jahreszeiten berechnen
 def calculate_averages(data):
+    """
+    Calculates average temperatures by year and season from station data.
+
+    Args:
+        data (dict): Parsed station data.
+
+    Returns:
+        list: List of dictionaries containing yearly and seasonal average temperatures.
+    """
     seasonal_months = {
         "spring": {3, 4, 5},
         "summer": {6, 7, 8},
