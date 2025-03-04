@@ -64,6 +64,24 @@ function setupEventListeners() {
 
 // Input-Limit für Anzahl Stationen & Suchradius
 function setupInputLimits() {
+    longitude.addEventListener('input', () => {
+        if (parseInt(longitude.value) > 180) {
+            longitude.value = 180;
+        } 
+        if (parseInt(longitude.value) < -180) {
+            longitude.value = -180;
+        }
+    });
+
+    latitude.addEventListener('input', () => {
+        if (parseInt(latitude.value) > 90) {
+            latitude.value = 90;
+        } 
+        if (parseInt(latitude.value) < -90) {
+            latitude.value = -90;
+        }
+    });
+
     limit.addEventListener('input', () => {
         if (parseInt(limit.value) > 10) {
             limit.value = 10;
@@ -110,6 +128,8 @@ async function searchStations() {
     selectedStationId = null;
     const latInput = latitude.value;
     const lonInput = longitude.value;
+    startYear = parseInt(startYearSelect.value);
+    endYear = parseInt(endYearSelect.value);
 
     const radius = parseInt(document.getElementById('radius').value);
     const limit = parseInt(document.getElementById('limit').value);
@@ -130,7 +150,8 @@ async function searchStations() {
     radiusCircle = L.circle([lat, lon], { radius: radius * 1000, color: 'blue', fillColor: 'blue', fillOpacity: 0.2 }).addTo(map);
 
     try {
-        const response = await fetch(`/stations-within-radius/${lat}/${lon}/${radius}/${limit}`);
+        console.log(`API URL: /stations-within-radius/${lat}/${lon}/${radius}/${limit}/${startYear}/${endYear}`);
+        const response = await fetch(`/stations-within-radius/${lat}/${lon}/${radius}/${limit}/${startYear}/${endYear}`);
         const stations = await response.json();
 
         displayStations(stations);
@@ -268,6 +289,7 @@ async function evaluateStation() {
     const displayType = document.getElementById('displayType').value;
 
     try {
+        console.log(`API URL: /station-data/${selectedStationId}/${startYear}/${endYear}`);
         const response = await fetch(`/station-data/${selectedStationId}/${startYear}/${endYear}`);
         let data = await response.json();
 
@@ -279,9 +301,6 @@ async function evaluateStation() {
             
             //Diagramm & Tabelle darstellen
             renderDisplay(data, displayType);
-        } else {
-            // KANN ENTFALLEN, SOBALD API ANGEPASST
-            alert("Keine Daten für die ausgewählte Station im angegebenen Zeitraum!");
         }
     } catch (error) {
         console.error("Fehler beim Abrufen der Stationsdaten:", error);
