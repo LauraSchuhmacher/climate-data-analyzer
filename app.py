@@ -1,6 +1,5 @@
 import json
 import requests
-import time
 import datetime
 import math
 from flask import Flask, send_from_directory
@@ -119,17 +118,23 @@ def haversine(lat1, lon1, lat2, lon2):
     return R * c
 
 # Stationen innerhalb eines Radius abrufen
-def get_stations_within_radius(lat, lon, radius, limit):
+def get_stations_within_radius(lat, lon, radius, limit, start_year, end_year):
     stations = read_data(STATIONS_FILE).get("stations", [])
     stations_with_distance = []
+    
     for station in stations:
-        if "latitude" in station and "longitude" in station:
+        if "latitude" in station and "longitude" in station and "mindate" in station and "maxdate" in station:
             distance = haversine(lat, lon, station["latitude"], station["longitude"])
             if distance <= radius:
-                station["distance"] = distance  # Entfernung zur Station hinzufügen
-                stations_with_distance.append(station)
-        stations_sorted = sorted(stations_with_distance, key=lambda station: station["distance"])
-
+                min_year = station["mindate"] if station["mindate"] else None
+                max_year = station["maxdate"] if station["maxdate"] else None
+                
+                if min_year and max_year and min_year <= start_year and max_year >= end_year:
+                    station["distance"] = distance  # Füge Entfernung zur Station hinzu
+                    stations_with_distance.append(station)
+    
+    stations_sorted = sorted(stations_with_distance, key=lambda station: station["distance"])
+    
     return stations_sorted[:limit], 200
 
 # Stationsdaten parsen
@@ -211,15 +216,22 @@ def calculate_averages(data):
 
             if year not in year_data:
                 year_data[year] = {
+                    "tmax": [], "tmin": [],
                     "seasons": {season: {"tmax": [], "tmin": []} for season in seasonal_months}
                 }
 
             # Füge den Wert zur entsprechenden Liste hinzu
+            if datatype == "TMAX":
+                year_data[year]["tmax"].append(value)
+            elif datatype == "TMIN":
+                year_data[year]["tmin"].append(value)
+
             for season, months in seasonal_months.items():
                 if month in months:
                     if season == "winter":
                         if winter_year not in year_data:
                             year_data[winter_year] = {
+                                "tmax": [], "tmin": [],
                                 "seasons": {season: {"tmax": [], "tmin": []} for season in seasonal_months}
                             }
                         if datatype == "TMAX":
@@ -236,12 +248,12 @@ def calculate_averages(data):
 
     result = []
     for year, values in sorted(year_data.items()):
+        yearly_tmax = round(sum(values["tmax"]) / len(values["tmax"]) / 10, 1) if values["tmax"] else None
+        yearly_tmin = round(sum(values["tmin"]) / len(values["tmin"]) / 10, 1) if values["tmin"] else None
         season_averages = {}
         for season, temps in values["seasons"].items():
             season_averages[f"{season}_tmax"] = (round(sum(temps["tmax"]) / len(temps["tmax"]) / 10, 1) if temps["tmax"] else None)
             season_averages[f"{season}_tmin"] = (round(sum(temps["tmin"]) / len(temps["tmin"]) / 10, 1) if temps["tmin"] else None)
-            yearly_tmax = round(sum([temp for season, temp in season_averages.items() if "tmax" in season and temp is not None]) / 4, 1)
-            yearly_tmin = round(sum([temp for season, temp in season_averages.items() if "tmin" in season and temp is not None]) / 4, 1)
 
         result.append({"year": year, "tmax": yearly_tmax, "tmin": yearly_tmin, **season_averages})
     result.pop()  # Letztes Jahr entfernen. Es enthält unvollständige Daten.
@@ -255,8 +267,8 @@ class StationsResource(Resource):
         return stations, 200
 
 class StationsWithinRadiusResource(Resource):
-    def get(self, latitude, longitude, radius, limit):
-        return get_stations_within_radius(latitude, longitude, radius, limit)
+    def get(self, latitude, longitude, radius, limit, start_year, end_year):
+        return get_stations_within_radius(latitude, longitude, radius, limit, start_year, end_year)
 
 class StationDataResource(Resource):
     def get(self, station_id, start_year, end_year):
@@ -264,7 +276,7 @@ class StationDataResource(Resource):
 
 # Routen hinzufügen
 api.add_resource(StationsResource, "/stations")
-api.add_resource(StationsWithinRadiusResource, "/stations-within-radius/<float(signed=True):latitude>/<float(signed=True):longitude>/<int:radius>/<int:limit>")
+api.add_resource(StationsWithinRadiusResource, "/stations-within-radius/<float(signed=True):latitude>/<float(signed=True):longitude>/<int:radius>/<int:limit>/<int:start_year>/<int:end_year>")
 api.add_resource(StationDataResource, "/station-data/<string:station_id>/<int:start_year>/<int:end_year>")
 
 if __name__ == "__main__":
