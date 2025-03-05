@@ -28,5 +28,11 @@ $ docker-compose up --build
 3. Open your browser and navigate to [http://localhost:5000](http://localhost:5000).
 
 ## Rules
-* maybe variable names camelCase...
+#### Frontend
+Functions are declared in camelCase
+Variables are declared in camelCase
+
+#### Backend
+Functions are declared in snake_case
+Variables are declared in snake_case
 
