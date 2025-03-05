@@ -37,6 +37,15 @@ function initializeMap(){
     // Initialer Marker
     userMarker = L.marker([initialLat, initialLon]).addTo(map);
     radiusCircle = L.circle([initialLat, initialLon], { radius: 1000, color: 'blue', fillColor: 'blue', fillOpacity: 0.2 }).addTo(map);
+
+    // Klick-Event für Koordinaten-Popup
+    map.on('click', function (e) {
+        const { lat, lng } = e.latlng;
+        L.popup()
+            .setLatLng(e.latlng)
+            .setContent(`<b>Koordinaten:</b><br>Latitude: ${lat.toFixed(4)}<br>Longitude: ${lng.toFixed(4)}`)
+            .openOn(map);
+    });
 }
 
 // Jahr-Optionen füllen
@@ -85,20 +94,32 @@ function validateRequiredFields() {
     return isValid;
 }
 
-// Inputs verbieten
+// Whitelisting für Eingaben
 function preventInputValues(e) {
-    // E-Werte verbieten
-    if (e.target.type === 'number' && (e.key === 'e' || e.key === 'E')) {
+    const numberRegex = /^[0-9]$/;
+    const floatRegex = /^[0-9.,-]$/;
+    const allowedKeys = ['Backspace', 'ArrowLeft', 'ArrowRight', 'Tab'];
+
+    // Für Limit & Radius nur ganze Zahlen erlauben
+    if ((e.target.id === 'limit' || e.target.id === 'radius') && 
+        !numberRegex.test(e.key) && 
+        !allowedKeys.includes(e.key)) {
         e.preventDefault();
-        alert("Exponentielle Eingaben sind nicht erlaubt!");
     }
 
-    // Float für Max. Anzahl Stationen verbieten
-    if (e.target.id === 'limit' && (e.key === '.' || e.key === ',')) {
+    // Für Längen- & Breitengrad Float-Werte erlauben
+    if ((e.target.id === 'longitude' || e.target.id === 'latitude') && 
+        !floatRegex.test(e.key) && 
+        !allowedKeys.includes(e.key)) {
         e.preventDefault();
-        alert("Kommazahlen sind für \"Max. Anzahl Stationen\" nicht erlaubt!");
+    }
+
+    // Verbiete e, E, "+", "'", '"' für alle Eingaben
+    if (['e', 'E', '+', "'", '"'].includes(e.key)) {
+        e.preventDefault();
     }
 }
+
 
 // Input-Limit für Anzahl Stationen & Suchradius
 function setupInputLimits() {
@@ -266,6 +287,7 @@ function clear(mode = 'all') {
     }
 
     if (mode === 'all' || mode === 'data') {
+        map.closePopup();
         if (chartContainer) {
             if (chartInstance) {
                 chartInstance.destroy();
