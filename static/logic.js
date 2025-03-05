@@ -305,13 +305,13 @@ function clear(mode = 'all') {
 
 
 function highlightselectedStationAndMarker(stationId){
-    console.log("Hebe markierte Station hervor")
     // geklickte Station in Tabelle hervorheben
     document.querySelectorAll('.station-row').forEach(row => row.classList.remove('selected'));
     const row = document.querySelector(`.station-row[data-id="${stationId}"]`);
     row.classList.add('selected');
     selectedStationId = stationId;
-    
+    console.log(`selectedStationId: ${selectedStationId}`);
+
     // bereits hervorgehobene Station zurücksetzen
     if (selectedMarker) {
         selectedMarker.setIcon(L.icon({
@@ -396,7 +396,7 @@ function swapSeasonsForSouthernHemisphere(data) {
 
 // Darstellung von Tabelle und/oder Grafik
 function renderDisplay(data, displayType) {
-    console.log("Gewünschte Auswertung anzeigen");
+    console.log("Auswertung anzeigen");
     // Anzeigen der Container basierend auf dem gewählten Anzeigetyp
     if (displayType === 'graphic' || displayType === 'both') {
         renderChart(data);
