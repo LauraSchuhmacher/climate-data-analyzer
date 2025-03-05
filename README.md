@@ -29,10 +29,10 @@ $ docker-compose up --build
 
 ## Rules
 #### Frontend
-Functions are declared in camelCase
-Variables are declared in camelCase
+*Functions are declared in camelCase
+*Variables are declared in camelCase
 
 #### Backend
-Functions are declared in snake_case
-Variables are declared in snake_case
+*Functions are declared in snake_case
+*Variables are declared in snake_case
 
