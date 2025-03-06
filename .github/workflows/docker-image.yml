@@ -30,4 +30,4 @@ jobs:
         with:
           context: .
           push: true
-          tags: ghcr.io/LauraSchuhmacher/ClimateDataAnalyzer:latest
+          tags: ghcr.io/lauraschuhmacher/climate-data-analyzer:latest
