@@ -1,6 +1,7 @@
 services:
   flask-app:
     build: .
+    image: ghcr.io/lauraschuhmacher/climate-data-analyzer:latest
     container_name: lazy-lama
     ports:
       - "5000:5000"
