@@ -113,11 +113,6 @@ function preventInputValues(e) {
     !allowedKeys.includes(e.key)) {
     e.preventDefault();
 }
-
-    // Verbiete e, E, "+", "'", '"', '^' für alle Eingaben
-    if (['e', 'E', '+', "'", '"', '^', '´', '`'].includes(e.key)) {
-        e.preventDefault();
-    }
 }
 
 
