@@ -44,13 +44,13 @@ Or
 To pull and run the container, run:
 
 ```bash
-docker run -p 5000:5000 ghcr.io/lauraschuhmacher/movie-api:latest
+docker run -p 5000:5000 ghcr.io/lauraschuhmacher/climate-data-analyzer:latest
 ```
 
 or
 
 ```bash
-podman run -p 5000:5000 ghcr.io/lauraschuhmacher/movie-api:latest
+podman run -p 5000:5000 ghcr.io/lauraschuhmacher/climate-data-analyzer:latest
 ```
 
 ## Rules
