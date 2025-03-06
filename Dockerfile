@@ -1,5 +1,5 @@
 # Offizielles Python-Image als Basis
-FROM python:3.9
+FROM python:3.9-slim
 
 # Arbeitsverzeichnis erstellen
 WORKDIR /app
@@ -11,12 +11,16 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Den Code kopieren
 COPY . .
 
+ENV FLASK_APP=app/app.py
+
 # Container-Port definieren
 EXPOSE 5000
 
 # ENV PYTHONUNBUFFERED=1
 
 # Befehl zum Starten der Anwendung
-# CMD ["python", "-u", "app.py"]
-CMD ["python", "app/app.py"]
+# CMD ["python", "-u", "app/app.py"]
+# CMD ["python", "app/app.py"]
+# CMD ["flask", "run", "--host=0.0.0.0"]
+CMD ["flask", "run", "--host=0.0.0.0", "--port=5000"]
 
