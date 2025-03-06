@@ -18,7 +18,7 @@ INVENTORY_URL_AWS = "http://noaa-ghcn-pds.s3.amazonaws.com/ghcnd-inventory.txt"
 @app.route("/")
 def serve_frontend():
     """Serve the frontend HTML file from the static directory."""
-    return send_from_directory("static", "Index.html")
+    return send_from_directory(app.static_folder, "index.html")
 
 # Daten aus der JSON-Datei lesen
 def read_data(file_path):
