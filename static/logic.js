@@ -97,7 +97,7 @@ function validateRequiredFields() {
 // Whitelisting für Eingaben
 function preventInputValues(e) {
     const numberRegex = /^[0-9]$/;
-    const floatRegex = /^[0-9.,-]$/;
+    const floatRegex = /^-?[0-9]*[.,]?[0-9]*$/;
     const allowedKeys = ['Backspace', 'ArrowLeft', 'ArrowRight', 'Tab'];
 
     // Für Limit & Radius nur ganze Zahlen erlauben
@@ -109,13 +109,13 @@ function preventInputValues(e) {
 
     // Für Längen- & Breitengrad Float-Werte erlauben
     if ((e.target.id === 'longitude' || e.target.id === 'latitude') && 
-        !floatRegex.test(e.key) && 
-        !allowedKeys.includes(e.key)) {
-        e.preventDefault();
-    }
+    !floatRegex.test(e.target.value + e.key) && 
+    !allowedKeys.includes(e.key)) {
+    e.preventDefault();
+}
 
-    // Verbiete e, E, "+", "'", '"' für alle Eingaben
-    if (['e', 'E', '+', "'", '"'].includes(e.key)) {
+    // Verbiete e, E, "+", "'", '"', '^' für alle Eingaben
+    if (['e', 'E', '+', "'", '"', '^'].includes(e.key)) {
         e.preventDefault();
     }
 }
