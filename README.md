@@ -2,13 +2,14 @@
 ## Introduction
 Climate Data Analyzer is a tool designed to help you analyze and visualize climate data from the past years based on weather stations.
 
-## Prerequisites
+## Run it locally
+### Prerequisites
 Make sure you have the following installed:
 - Git
 - Python
 - Docker
 
-## Installation
+### Installation
 #### 1. Clone Git Repository
 ```bash
 $ git clone git@github.com:LauraSchuhmacher/ClimateDataAnalyzer.git
@@ -26,6 +27,31 @@ $ docker-compose up --build
 1. Start Docker. 
 2. Start the `climatedataanalyzer` container.
 3. Open your browser and navigate to [http://localhost:5000](http://localhost:5000).
+
+## Run the container
+
+### Prerequisites - Container
+
+- Docker
+
+Or
+
+- Windows Subsystem for Linux (WSL)
+- Podman
+
+### How to - Container
+
+To pull and run the container, run:
+
+```bash
+docker run -p 5000:5000 ghcr.io/lauraschuhmacher/movie-api:latest
+```
+
+or
+
+```bash
+podman run -p 5000:5000 ghcr.io/lauraschuhmacher/movie-api:latest
+```
 
 ## Rules
 #### Frontend
