@@ -9,13 +9,10 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Den Code kopieren
-COPY . .
+COPY /app .
 
 # Container-Port definieren
 EXPOSE 5000
 
-# ENV PYTHONUNBUFFERED=1
-
 # Befehl zum Starten der Anwendung
-# CMD ["python", "-u", "app/app.py"]
 CMD ["python", "app/app.py"]
