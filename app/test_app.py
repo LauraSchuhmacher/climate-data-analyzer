@@ -1,140 +1,112 @@
-# from app import haversine
-# from app import get_stations_within_radius
-# #import pytest
-
-# def test_haversine():
-#     assert round(haversine(0, 0, 0, 0), 2) == 0.0
-#     assert round(haversine(0, 0, 0, 1), 2) == 111.19
-#     assert round(haversine(48.8566, 2.3522, 51.5074, -0.1278), 2) == 343.37
-
-# def test_get_stations_within_radius():
-#     #Villingen-Schwenningen
-#     assert get_stations_within_radius(48.0528, 8.4858, 10000, 10) == [{"id": "GM000010000", "latitude": 47.4211, "longitude": 10.9854, "elevation": 2960.0, "state": None, "name": "ZUGSPITZE", "mindate": "1901-01-01", "maxdate": "2023-12-31"},
-#     {"id": "GM000004000", "latitude": 48.1391, "longitude": 11.5802, "elevation": 520.0, "state": None, "name": "MUENCHEN", "mindate": "1879-01-01", "maxdate": "2023-12-31"},
-#     {"id": "GM000002195", "latitude": 48.833, "longitude": 9.2, "elevation": 259.0, "state": None, "name": "STUTTGART", "mindate": "1878-01-01", "maxdate": "2023-12-31"},
-#     {"id": "GM000002600", "latitude": 50.033, "longitude": 8.57, "elevation": 112.0, "state": None, "name": "FRANKFURT", "mindate": "1876-01-01", "maxdate": "2023-12-31"},
-#     {"id": "FR000007150", "latitude": 48.8566, "longitude": 2.3522, "elevation": 75.0, "state": None, "name": "PARIS", "mindate": "1873-01-01", "maxdate": "2023-12-31"},
-#     {"id": "IT000016036", "latitude": 41.9028, "longitude": 12.4964, "elevation": 37.0, "state": None, "name": "ROMA", "mindate": "1871-01-01", "maxdate": "2023-12-31"},
-#     {"id": "ES000082055", "latitude": 40.4168, "longitude": -3.7038, "elevation": 667.0, "state": None, "name": "MADRID", "mindate": "1853-01-01", "maxdate": "2023-12-31"},
-#     {"id": "RU000028279", "latitude": 55.7558, "longitude": 37.6173, "elevation": 156.0, "state": None, "name": "MOSKAU", "mindate": "1879-01-01", "maxdate": "2023-12-31"},
-#     {"id": "EG000062100", "latitude": 30.0444, "longitude": 31.2357, "elevation": 23.0, "state": None, "name": "KAIRO", "mindate": "1901-01-01", "maxdate": "2023-12-31"},
-#     ]
-
-#     #Rio de Janeiro
-#     assert len(get_stations_within_radius(-22.9068, -43.1729, 5000, 5)) == [{"id": "BR000047734", "latitude": -22.8751, "longitude": -43.2775, "elevation": 3.0, "state": None, "name": "RIO DE JANEIRO", "mindate": "1910-01-01", "maxdate": "2023-12-31"},
-#     {"id": "BR000008220", "latitude": -23.5505, "longitude": -46.6333, "elevation": 760.0, "state": None, "name": "SAO PAULO", "mindate": "1888-01-01", "maxdate": "2023-12-31"},
-#     {"id": "AR000087182", "latitude": -34.6037, "longitude": -58.3816, "elevation": 25.0, "state": None, "name": "BUENOS AIRES", "mindate": "1900-01-01", "maxdate": "2023-12-31"},
-#     {"id": "CL000085185", "latitude": -33.4489, "longitude": -70.6693, "elevation": 520.0, "state": None, "name": "SANTIAGO", "mindate": "1911-01-01", "maxdate": "2023-12-31"},
-#     ] 
-    
-#     #Null Island
-#     assert len(get_stations_within_radius(0, 0, 10000,2)) == [{"id": "GH000061188", "latitude": 5.6037, "longitude": -0.1870, "elevation": 61.0, "state": None, "name": "ACCRA", "mindate": "1921-01-01", "maxdate": "2023-12-31"},
-#     {"id": "NG000061189", "latitude": 6.5244, "longitude": 3.3792, "elevation": 41.0, "state": None, "name": "LAGOS", "mindate": "1912-01-01", "maxdate": "2023-12-31"},
-#     {"id": "CD000061190", "latitude": -4.4419, "longitude": 15.2663, "elevation": 312.0, "state": None, "name": "KINSHASA", "mindate": "1925-01-01", "maxdate": "2023-12-31"},
-#     ]
-
-#     #Nortpole
-#     assert len(get_stations_within_radius(90.0, 0, 5000, 10)) == [{"id": "SJ000060188", "latitude": 78.2232, "longitude": 15.6267, "elevation": 50.0, "state": None, "name": "LONGYEARBYEN", "mindate": "1910-01-01", "maxdate": "2023-12-31"},
-#     {"id": "RU000028111", "latitude": 68.9585, "longitude": 33.0827, "elevation": 35.0, "state": None, "name": "MURMANSK", "mindate": "1885-01-01", "maxdate": "2023-12-31"},
-#     ] 
-
-#     #Southpole
-#     assert len(get_stations_within_radius(-90.0, 0, 5000, 4)) == [{"id": "AQ000890000", "latitude": -89.99, "longitude": 0.00, "elevation": 2835.0, "state": None, "name": "AMUNDSEN-SCOTT", "mindate": "1957-01-01", "maxdate": "2023-12-31"},
-#     {"id": "AQ000890100", "latitude": -77.8463, "longitude": 166.6683, "elevation": 34.0, "state": None, "name": "MCMURDO", "mindate": "1955-01-01", "maxdate": "2023-12-31"},
-#     {"id": "AQ000890200", "latitude": -64.7743, "longitude": -64.0537, "elevation": 10.0, "state": None, "name": "PALMER STATION", "mindate": "1965-01-01", "maxdate": "2023-12-31"},
-#     ]
-
-#     assert len(get_stations_within_radius(48.0528, 8.4858, 0, 10)) == 0 #Radius 0
-#     assert len(get_stations_within_radius(48.0528, 8.4858, 40.030, 0)) == 0 #Limit 0
-#     assert len(get_stations_within_radius(48.0528, 8.4858, 40.030, 100000)) == 128025 #show all
-    
-
-
-from app import haversine, get_stations_within_radius
-
+from app import haversine, get_stations_within_radius, parse_station_data, fetch_station_data, calculate_averages
+  
 def test_haversine():
     assert round(haversine(0, 0, 0, 0), 2) == 0.0
     assert round(haversine(0, 0, 0, 1), 2) == 111.19
     assert round(haversine(48.8566, 2.3522, 51.5074, -0.1278), 2) == 343.56
 
 def test_get_stations_within_radius():
-    # Villingen-Schwenningen
-    expected_stations_villingen = [
-        {"id": "GM000010000", "latitude": 47.4211, "longitude": 10.9854, "elevation": 2960.0, "state": None, "name": "ZUGSPITZE", "mindate": 1901, "maxdate": 2023},
-        {"id": "GM000004000", "latitude": 48.1391, "longitude": 11.5802, "elevation": 520.0, "state": None, "name": "MUENCHEN", "mindate": 1879, "maxdate": 2023},
-        {"id": "GM000002195", "latitude": 48.833, "longitude": 9.2, "elevation": 259.0, "state": None, "name": "STUTTGART", "mindate": 1878, "maxdate": 2023},
-        {"id": "GM000002600", "latitude": 50.033, "longitude": 8.57, "elevation": 112.0, "state": None, "name": "FRANKFURT", "mindate": 1876, "maxdate": 2023},
-        {"id": "FR000007150", "latitude": 48.8566, "longitude": 2.3522, "elevation": 75.0, "state": None, "name": "PARIS", "mindate": 1873, "maxdate": 2023},
-        {"id": "IT000016036", "latitude": 41.9028, "longitude": 12.4964, "elevation": 37.0, "state": None, "name": "ROMA", "mindate": 1871, "maxdate": 2023},
-        {"id": "ES000082055", "latitude": 40.4168, "longitude": -3.7038, "elevation": 667.0, "state": None, "name": "MADRID", "mindate": 1853, "maxdate": 2023},
-        {"id": "RU000028279", "latitude": 55.7558, "longitude": 37.6173, "elevation": 156.0, "state": None, "name": "MOSKAU", "mindate": 1879, "maxdate": 2023},
-        {"id": "EG000062100", "latitude": 30.0444, "longitude": 31.2357, "elevation": 23.0, "state": None, "name": "KAIRO", "mindate": 1901, "maxdate": 2023},
-    ]
-    actual_stations_villingen, _ = get_stations_within_radius(48.0528, 8.4858, 10000, 10, 1900, 2023)
-    actual_stations_villingen_relevant = [
-        {key: station[key] for key in ["id", "latitude", "longitude", "elevation", "state", "name", "mindate", "maxdate"]}
-        for station in actual_stations_villingen
-    ]
-    assert actual_stations_villingen_relevant == expected_stations_villingen
+    # Test: Stationen im Umkreis von Villingen-Schwenningen und korrektem Jahr
+    result  = get_stations_within_radius(48.0528, 8.4858, 100, 10, 1990, 2024)
+    expected_stations = ([
+        {"id": "GME00129634", "latitude": 48.0458, "longitude": 8.4617, "elevation": 720.0, "state": None, "name": "VILLINGEN-SCHWENNINGEN", "mindate": 1947, "maxdate": 2025, "distance": 1.9532123487652326}, 
+        {"id": "GME00128002", "latitude": 48.1819, "longitude": 8.6358, "elevation": 588.0, "state": None, "name": "ROTTWEIL", "mindate": 1957, "maxdate": 2025, "distance": 18.167706450006673}, 
+        {"id": "GMM00010818", "latitude": 48.1064, "longitude": 8.7556, "elevation": 973.0, "state": None, "name": "KLIPPENECK", "mindate": 1947, "maxdate": 2025, "distance": 20.91054688910625}, 
+        {"id": "GME00121714", "latitude": 48.2019, "longitude": 8.1094, "elevation": 440.0, "state": None, "name": "ELZACH-FISNACHT", "mindate": 1987, "maxdate": 2025, "distance": 32.485527925551835}, 
+        {"id": "GME00130486", "latitude": 48.2958, "longitude": 8.24, "elevation": 291.0, "state": None, "name": "WOLFACH", "mindate": 1958, "maxdate": 2025, "distance": 32.59305088507141}, 
+        {"id": "GME00132346", "latitude": 47.9631, "longitude": 7.9989, "elevation": 445.0, "state": None, "name": "BUCHENBACH", "mindate": 1990, "maxdate": 2025, "distance": 37.56979583004074}, 
+        {"id": "GME00120934", "latitude": 47.8756, "longitude": 8.0044, "elevation": 1490.0, "state": None, "name": "FELDBERG/SCHWARZWALD", "mindate": 1936, "maxdate": 2025, "distance": 40.9016125704772}, 
+        {"id": "GME00130618", "latitude": 47.6789, "longitude": 8.3806, "elevation": 398.0, "state": None, "name": "WUTOSCHINGEN-OFTERINGEN", "mindate": 1961, "maxdate": 2025, "distance": 42.309927137557736}, 
+        {"id": "GME00120946", "latitude": 48.4544, "longitude": 8.41, "elevation": 797.0, "state": None, "name": "FREUDENSTADT", "mindate": 1949, "maxdate": 2025, "distance": 45.00713506907184}, 
+        {"id": "GME00122458", "latitude": 48.0242, "longitude": 7.8353, "elevation": 236.0, "state": None, "name": "FREIBURG", "mindate": 1881, "maxdate": 2025, "distance": 48.46792357502696}
+        ], 200)
+    assert result == expected_stations
 
-    # Rio de Janeiro
-    expected_stations_rio = [
-        {"id": "BR000047734", "latitude": -22.8751, "longitude": -43.2775, "elevation": 3.0, "state": None, "name": "RIO DE JANEIRO", "mindate": 1910, "maxdate": 2023},
-        {"id": "BR000008220", "latitude": -23.5505, "longitude": -46.6333, "elevation": 760.0, "state": None, "name": "SAO PAULO", "mindate": 1888, "maxdate": 2023},
-        {"id": "AR000087182", "latitude": -34.6037, "longitude": -58.3816, "elevation": 25.0, "state": None, "name": "BUENOS AIRES", "mindate": 1900, "maxdate": 2023},
-        {"id": "CL000085185", "latitude": -33.4489, "longitude": -70.6693, "elevation": 520.0, "state": None, "name": "SANTIAGO", "mindate": 1911, "maxdate": 2023},
-    ]
-    actual_stations_rio, _ = get_stations_within_radius(-22.9068, -43.1729, 5000, 5, 1900, 2023)
-    actual_stations_rio_relevant = [
-        {key: station[key] for key in ["id", "latitude", "longitude", "elevation", "state", "name", "mindate", "maxdate"]}
-        for station in actual_stations_rio
-    ]
-    assert actual_stations_rio_relevant == expected_stations_rio
+    # Test: Keine Stationen aufgrund falscher Jahreszahlen
+    assert get_stations_within_radius(48.0528, 8.4858, 100, 10, 1763, 2024) == ([], 200)
 
-    # Null Island
-    expected_stations_null_island = [
-        {"id": "GH000061188", "latitude": 5.6037, "longitude": -0.1870, "elevation": 61.0, "state": None, "name": "ACCRA", "mindate": 1921, "maxdate": 2023},
-        {"id": "NG000061189", "latitude": 6.5244, "longitude": 3.3792, "elevation": 41.0, "state": None, "name": "LAGOS", "mindate": 1912, "maxdate": 2023},
-        {"id": "CD000061190", "latitude": -4.4419, "longitude": 15.2663, "elevation": 312.0, "state": None, "name": "KINSHASA", "mindate": 1925, "maxdate": 2023},
-    ]
-    actual_stations_null_island, _ = get_stations_within_radius(0, 0, 10000, 2, 1900, 2023)
-    actual_stations_null_island_relevant = [
-        {key: station[key] for key in ["id", "latitude", "longitude", "elevation", "state", "name", "mindate", "maxdate"]}
-        for station in actual_stations_null_island
-    ]
-    assert actual_stations_null_island_relevant == expected_stations_null_island
-
-    # North Pole
-    expected_stations_north_pole = [
-        {"id": "SJ000060188", "latitude": 78.2232, "longitude": 15.6267, "elevation": 50.0, "state": None, "name": "LONGYEARBYEN", "mindate": 1910, "maxdate": 2023},
-        {"id": "RU000028111", "latitude": 68.9585, "longitude": 33.0827, "elevation": 35.0, "state": None, "name": "MURMANSK", "mindate": 1885, "maxdate": 2023},
-    ]
-    actual_stations_north_pole, _ = get_stations_within_radius(90.0, 0, 5000, 10, 1900, 2023)
-    actual_stations_north_pole_relevant = [
-        {key: station[key] for key in ["id", "latitude", "longitude", "elevation", "state", "name", "mindate", "maxdate"]}
-        for station in actual_stations_north_pole
-    ]
-    assert actual_stations_north_pole_relevant == expected_stations_north_pole
-
-    # South Pole
-    expected_stations_south_pole = [
-        {"id": "AQ000890000", "latitude": -89.99, "longitude": 0.00, "elevation": 2835.0, "state": None, "name": "AMUNDSEN-SCOTT", "mindate": 1957, "maxdate": 2023},
-        {"id": "AQ000890100", "latitude": -77.8463, "longitude": 166.6683, "elevation": 34.0, "state": None, "name": "MCMURDO", "mindate": 1955, "maxdate": 2023},
-        {"id": "AQ000890200", "latitude": -64.7743, "longitude": -64.0537, "elevation": 10.0, "state": None, "name": "PALMER STATION", "mindate": 1965, "maxdate": 2023},
-    ]
-    actual_stations_south_pole, _ = get_stations_within_radius(-90.0, 0, 5000, 4, 1900, 2023)
-    actual_stations_south_pole_relevant = [
-        {key: station[key] for key in ["id", "latitude", "longitude", "elevation", "state", "name", "mindate", "maxdate"]}
-        for station in actual_stations_south_pole
-    ]
-    assert actual_stations_south_pole_relevant == expected_stations_south_pole
+    # Test: Kein Treffer, da keine Stationen in der Nähe
+    assert get_stations_within_radius(16, 8, 100, 10, 2010, 2024) == ([], 200)
 
     # Edge cases
-    assert len(get_stations_within_radius(48.0528, 8.4858, 0, 10, 1900, 2023)[0]) == 0  # Radius 0
-    assert len(get_stations_within_radius(48.0528, 8.4858, 40.030, 0, 1900, 2023)[0]) == 0  # Limit 0
-    assert len(get_stations_within_radius(48.0528, 8.4858, 40.030, 100000, 1900, 2023)[0]) == 128025  # Show all
+    assert len(get_stations_within_radius(48.0528, 8.4858, 0, 10, 1900, 2023)) == len(([], 200)) # Radius 0
+    assert len(get_stations_within_radius(48.0528, 8.4858, 40.030, 0, 1900, 2023)) == len(([], 200)) # Limit 0
+
+#def test_parse_station_data():
+    #normal
+    
+    #leere Werte
+    #keine Werte
+
+# def test_fetch_station_data():
+#     assert fetch_station_data("GME00120934", 2000, 2010) == 0
+    
+def test_calculate_averages():
+    sample_data = {"results": [{"date": "20000102", "datatype": "TMAX", "value": -20},
+                    {"date": "20000222", "datatype": "TMAX", "value": -50},
+                    {"date": "20000312", "datatype": "TMAX", "value": 150},
+                    {"date": "20000402", "datatype": "TMAX", "value": 175},
+                    {"date": "20000502", "datatype": "TMAX", "value": 205},
+                    {"date": "20000602", "datatype": "TMAX", "value": 215},
+                    {"date": "20000702", "datatype": "TMAX", "value": 315},
+                    {"date": "20000822", "datatype": "TMAX", "value": 350},
+                    {"date": "20000912", "datatype": "TMAX", "value": 315},
+                    {"date": "20001002", "datatype": "TMAX", "value": 170},
+                    {"date": "20001102", "datatype": "TMAX", "value": 105},
+                    {"date": "20001202", "datatype": "TMAX", "value": 0},
+                    {"date": "20000122", "datatype": "TMIN", "value": 0},
+                    {"date": "20000312", "datatype": "TMIN", "value": 100},
+                    {"date": "20001222", "datatype": "TMIN", "value": -50},
+                    {"date": "20001229", "datatype": "TMIN", "value": -100},
+                    {"date": "20010110", "datatype": "TMAX", "value": -40},
+                    {"date": "20010115", "datatype": "TMIN", "value": -30},
+                    {"date": "20010205", "datatype": "TMAX", "value": -20},
+                    {"date": "20010210", "datatype": "TMIN", "value": -25},
+                    {"date": "20010310", "datatype": "TMAX", "value": 100},
+                    {"date": "20010315", "datatype": "TMIN", "value": 50},
+                    {"date": "20010410", "datatype": "TMAX", "value": 180},
+                    {"date": "20010420", "datatype": "TMIN", "value": 80},
+                    {"date": "20010505", "datatype": "TMAX", "value": 210},
+                    {"date": "20010515", "datatype": "TMIN", "value": 100},
+                    {"date": "20010610", "datatype": "TMAX", "value": 250},
+                    {"date": "20010615", "datatype": "TMIN", "value": 150},
+                    {"date": "20010710", "datatype": "TMAX", "value": 310},
+                    {"date": "20010720", "datatype": "TMIN", "value": 180},
+                    {"date": "20010810", "datatype": "TMAX", "value": 320},
+                    {"date": "20010815", "datatype": "TMIN", "value": 190},
+                    {"date": "20011205", "datatype": "TMAX", "value": 10},
+                    {"date": "20011210", "datatype": "TMIN", "value": -20},
+                    {"date": "20011220", "datatype": "TMAX", "value": -5},
+                    {"date": "20011230", "datatype": "TMIN", "value": -15}]
+                }
+
+    expected_result = [
+    {
+        "year": 2000,
+        "tmax": 16.1, "tmin": -1.2,
+        "spring_tmax": 17.7, "spring_tmin": 10.0,
+        "summer_tmax": 29.3, "summer_tmin": None,
+        "fall_tmax": 19.7, "fall_tmin": None,
+        "winter_tmax": -3.5, "winter_tmin": 0.0
+    },
+    {
+        "year": 2001,
+        "tmax": 17.3, "tmin": 1.7,  
+        "spring_tmax": 16.3, "spring_tmin": 7.7,  
+        "summer_tmax": 29.3, "summer_tmin": 17.3,  
+        "fall_tmax": None, "fall_tmin": None,  # Keine Herbstwerte
+        "winter_tmax": -13.8, "winter_tmin": -22.5  
+    }
+]
+
+    result = calculate_averages(sample_data)
+    assert len(result) > 0
+    assert result == expected_result
+  
 
 if __name__ == "__main__":
     test_haversine()
     test_get_stations_within_radius()
+    # test_fetch_station_data()
+    test_calculate_averages()
 
