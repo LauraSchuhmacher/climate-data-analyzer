@@ -32,15 +32,66 @@ def test_get_stations_within_radius():
     assert len(get_stations_within_radius(48.0528, 8.4858, 0, 10, 1900, 2023)) == len(([], 200)) # Radius 0
     assert len(get_stations_within_radius(48.0528, 8.4858, 40.030, 0, 1900, 2023)) == len(([], 200)) # Limit 0
 
-#def test_parse_station_data():
-    #normal
-    
-    #leere Werte
-    #keine Werte
+def test_parse_station_data():
+    test_data = """
+        ID,DATE,ELEMENT,DATA_VALUE,M_FLAG,Q_FLAG,S_FLAG,OBS_TIME
+        IV000005555,19450101,TMAX,334,,,I,
+        IV000005555,19450102,TMAX,328,,,I,
+        IV000005555,19450104,TMAX,326,,,I,
+        IV000005555,19460101,TMAX,335,,,I,
+        IV000005555,19460102,TMAX,336,,,I,
+        IV000005555,19470101,TMAX,318,,,I,
+        IV000005555,19470102,TMAX,338,,,I,
+        IV000005555,19500101,TMAX,341,,,I,
+        IV000005555,19500102,TMAX,338,,,I,
+        IV000005555,19510101,TMAX,360,,,I,
+        IV000005555,19520101,TMAX,343,,,I,
+        IV000005555,19520201,TMAX,347,,,I,
+        IV000005555,19450101,TMIN,204,,,I,
+        IV000005555,19450102,TMIN,204,,,I,
+        IV000005555,19520101,TMIN,170,,,I,
+        """
 
-# def test_fetch_station_data():
-#     assert fetch_station_data("GME00120934", 2000, 2010) == 0
-    
+    expected_result_1946_1947 = {
+        "results": [
+            {"date": "19460101", "datatype": "TMAX", "value": 335},
+            {"date": "19460102", "datatype": "TMAX", "value": 336},
+            {"date": "19470101", "datatype": "TMAX", "value": 318},
+            {"date": "19470102", "datatype": "TMAX", "value": 338},
+        ]
+    }
+
+    expected_result_all = {
+        "results": [
+            {"date": "19450101", "datatype": "TMAX", "value": 334},
+            {"date": "19450102", "datatype": "TMAX", "value": 328},
+            {"date": "19450104", "datatype": "TMAX", "value": 326},
+            {"date": "19460101", "datatype": "TMAX", "value": 335},
+            {"date": "19460102", "datatype": "TMAX", "value": 336},
+            {"date": "19470101", "datatype": "TMAX", "value": 318},
+            {"date": "19470102", "datatype": "TMAX", "value": 338},
+            {"date": "19500101", "datatype": "TMAX", "value": 341},
+            {"date": "19500102", "datatype": "TMAX", "value": 338},
+            {"date": "19510101", "datatype": "TMAX", "value": 360},
+            {"date": "19520101", "datatype": "TMAX", "value": 343},
+            {"date": "19520201", "datatype": "TMAX", "value": 347},
+            {"date": "19450101", "datatype": "TMIN", "value": 204},
+            {"date": "19450102", "datatype": "TMIN", "value": 204},
+            {"date": "19520101", "datatype": "TMIN", "value": 170},
+        ]
+    }
+    # Test: Eingeschränkung durch Jahreszahl
+    assert parse_station_data(test_data, 1946, 1947) == expected_result_1946_1947
+  
+    # Test: Keine Einschränkung
+    assert parse_station_data(test_data, 1945, 1952) == expected_result_all
+    # Test: Keine Werte in diesem Jahr (Datenlücke)
+    assert parse_station_data(test_data, 1948, 1948) == {"results":[]}
+
+
+def test_fetch_station_data():
+    assert len(fetch_station_data("GME00120934", 2000, 2010)) != 0
+
 def test_calculate_averages():
     sample_data = {"results": [{"date": "20000102", "datatype": "TMAX", "value": -20},
                     {"date": "20000222", "datatype": "TMAX", "value": -50},
@@ -91,11 +142,11 @@ def test_calculate_averages():
     },
     {
         "year": 2001,
-        "tmax": 17.3, "tmin": 1.7,  
+        "tmax": 13.2, "tmin": 6.6,  
         "spring_tmax": 16.3, "spring_tmin": 7.7,  
         "summer_tmax": 29.3, "summer_tmin": 17.3,  
-        "fall_tmax": None, "fall_tmin": None,  # Keine Herbstwerte
-        "winter_tmax": -13.8, "winter_tmin": -22.5  
+        "fall_tmax": None, "fall_tmin": None,  
+        "winter_tmax": -2.0, "winter_tmin": -5.1  
     }
 ]
 
@@ -107,6 +158,9 @@ def test_calculate_averages():
 if __name__ == "__main__":
     test_haversine()
     test_get_stations_within_radius()
-    # test_fetch_station_data()
+    test_fetch_station_data()
+    test_parse_station_data()
     test_calculate_averages()
+
+
 
