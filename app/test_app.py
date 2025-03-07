@@ -41,11 +41,72 @@ def test_get_stations_within_radius():
 # def test_fetch_station_data():
 #     assert fetch_station_data("GME00120934", 2000, 2010) == 0
     
-#def test_calculate_averages():
+def test_calculate_averages():
+    sample_data = {"results": [{"date": "20000102", "datatype": "TMAX", "value": -20},
+                    {"date": "20000222", "datatype": "TMAX", "value": -50},
+                    {"date": "20000312", "datatype": "TMAX", "value": 150},
+                    {"date": "20000402", "datatype": "TMAX", "value": 175},
+                    {"date": "20000502", "datatype": "TMAX", "value": 205},
+                    {"date": "20000602", "datatype": "TMAX", "value": 215},
+                    {"date": "20000702", "datatype": "TMAX", "value": 315},
+                    {"date": "20000822", "datatype": "TMAX", "value": 350},
+                    {"date": "20000912", "datatype": "TMAX", "value": 315},
+                    {"date": "20001002", "datatype": "TMAX", "value": 170},
+                    {"date": "20001102", "datatype": "TMAX", "value": 105},
+                    {"date": "20001202", "datatype": "TMAX", "value": 0},
+                    {"date": "20000122", "datatype": "TMIN", "value": 0},
+                    {"date": "20000312", "datatype": "TMIN", "value": 100},
+                    {"date": "20001222", "datatype": "TMIN", "value": -50},
+                    {"date": "20001229", "datatype": "TMIN", "value": -100},
+                    {"date": "20010110", "datatype": "TMAX", "value": -40},
+                    {"date": "20010115", "datatype": "TMIN", "value": -30},
+                    {"date": "20010205", "datatype": "TMAX", "value": -20},
+                    {"date": "20010210", "datatype": "TMIN", "value": -25},
+                    {"date": "20010310", "datatype": "TMAX", "value": 100},
+                    {"date": "20010315", "datatype": "TMIN", "value": 50},
+                    {"date": "20010410", "datatype": "TMAX", "value": 180},
+                    {"date": "20010420", "datatype": "TMIN", "value": 80},
+                    {"date": "20010505", "datatype": "TMAX", "value": 210},
+                    {"date": "20010515", "datatype": "TMIN", "value": 100},
+                    {"date": "20010610", "datatype": "TMAX", "value": 250},
+                    {"date": "20010615", "datatype": "TMIN", "value": 150},
+                    {"date": "20010710", "datatype": "TMAX", "value": 310},
+                    {"date": "20010720", "datatype": "TMIN", "value": 180},
+                    {"date": "20010810", "datatype": "TMAX", "value": 320},
+                    {"date": "20010815", "datatype": "TMIN", "value": 190},
+                    {"date": "20011205", "datatype": "TMAX", "value": 10},
+                    {"date": "20011210", "datatype": "TMIN", "value": -20},
+                    {"date": "20011220", "datatype": "TMAX", "value": -5},
+                    {"date": "20011230", "datatype": "TMIN", "value": -15}]
+                }
+
+    expected_result = [
+    {
+        "year": 2000,
+        "tmax": 16.1, "tmin": -1.2,
+        "spring_tmax": 17.7, "spring_tmin": 10.0,
+        "summer_tmax": 29.3, "summer_tmin": None,
+        "fall_tmax": 19.7, "fall_tmin": None,
+        "winter_tmax": -3.5, "winter_tmin": 0.0
+    },
+    {
+        "year": 2001,
+        "tmax": 17.3, "tmin": 1.7,  
+        "spring_tmax": 16.3, "spring_tmin": 7.7,  
+        "summer_tmax": 29.3, "summer_tmin": 17.3,  
+        "fall_tmax": None, "fall_tmin": None,  # Keine Herbstwerte
+        "winter_tmax": -13.8, "winter_tmin": -22.5  
+    }
+]
+
+    result = calculate_averages(sample_data)
+    assert len(result) > 0
+    assert result == expected_result
   
 
 if __name__ == "__main__":
     test_haversine()
     test_get_stations_within_radius()
     # test_fetch_station_data()
+    test_calculate_averages()
 
