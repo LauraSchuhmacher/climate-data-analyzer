@@ -2,10 +2,10 @@ import json
 import requests
 import datetime
 import math
-from flask import Flask, send_from_directory
+from flask import Flask, render_template, send_from_directory
 from flask_restful import Api, Resource
 
-app = Flask(__name__, static_folder="static")
+app = Flask(__name__, static_folder="static", template_folder="template")
 api = Api(app)
 
 
@@ -18,7 +18,7 @@ INVENTORY_URL_AWS = "http://noaa-ghcn-pds.s3.amazonaws.com/ghcnd-inventory.txt"
 @app.route("/")
 def serve_frontend():
     """Serve the frontend HTML file from the static directory."""
-    return send_from_directory(app.static_folder, "index.html")
+    return render_template("index.html")
 
 # Daten aus der JSON-Datei lesen
 def read_data(file_path):
