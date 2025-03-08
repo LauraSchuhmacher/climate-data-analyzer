@@ -36,19 +36,46 @@ def write_data(data):
 
 # Alle Stationen abrufen
 def fetch_stations():
+    """Fetch all station data from the NOAA dataset.
+
+    Returns:
+        requests.Response: Response object containing station data or an error message.
+    """
     return fetch_url(STATIONS_URL_AWS, "stations data")
 
 # Inventardaten für alle Stationen abrufen
 def fetch_inventory_data():
+    """Fetch inventory data for all stations.
+
+    Returns:
+        requests.Response: Response object containing inventory data or an error message.
+    """
     return fetch_url(INVENTORY_URL_AWS, "inventory data")
 
 # Inventardaten für alle Stationen abrufen
 def fetch_station_data(station_id):
+    """Fetch weather data for a specific station.
+
+    Args:
+        station_id (str): The station ID to fetch data for.
+
+    Returns:
+        requests.Response: Response object containing station data or an error message.
+    """
     url = f"{DATA_URL_AWS}/{station_id}.csv"
     return fetch_url(url, "station data")
 
 # URL abrufen    
 def fetch_url(url, description):
+    """Fetch data from a given URL.
+
+    Args:
+        url (str): The URL to fetch data from.
+        description (str): Description of the data being fetched (for error messages).
+
+    Returns:
+        requests.Response or dict: Response object if successful, or error message dictionary with status code.
+    """
     try:
         response = requests.get(url)
         response.raise_for_status()

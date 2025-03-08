@@ -4,6 +4,10 @@ from external import read_data, write_data, fetch_stations, fetch_inventory_data
 
 # Stationsliste aktualisieren
 def update_stations():
+    """
+    Updates the station list if it hasn't been retrieved for the current year.
+    Fetches station and inventory data, then writes the updated list to storage.
+    """
     # Prüfe ob Stationsliste dieses Jahr schon abgerufen wurde.
     current_year = datetime.datetime.now().year
     data = read_data()
@@ -23,6 +27,17 @@ def update_stations():
 
 # Daten abrufen und parsen
 def fetch_and_parse(fetch_func, parse_func, *args):
+    """
+    Fetches data using the given function and parses it using the corresponding parser.
+    
+    Args:
+        fetch_func (function): Function to fetch the data.
+        parse_func (function): Function to parse the data.
+        *args: Additional arguments for the parsing function.
+    
+    Returns:
+        Parsed data.
+    """
     response = fetch_func()
     if isinstance(response, tuple):
         error, status = response
@@ -32,6 +47,15 @@ def fetch_and_parse(fetch_func, parse_func, *args):
 
 # Daten für alle Stationen abrufen
 def parse_stations_data(stations_data):
+    """
+    Parses station data and returns a dictionary of stations.
+    
+    Args:
+        stations_data (str): Raw station data as a string.
+    
+    Returns:
+        dict: Parsed station data indexed by station ID.
+    """
     station_dict = {}
     lines = stations_data.splitlines()
     
@@ -57,7 +81,17 @@ def parse_stations_data(stations_data):
     return station_dict
 
 # Inventardaten für alle Stationen abrufen
-def parse_inventory_data(inventory_data, station_dict):  
+def parse_inventory_data(inventory_data, station_dict):
+    """
+    Parses inventory data and updates station information with available temperature records.
+    
+    Args:
+        inventory_data (str): Raw inventory data.
+        station_dict (dict): Dictionary of station data.
+    
+    Returns:
+        list: List of stations with temperature record availability.
+    """
     lines = inventory_data.splitlines()
     
     for line in lines:
@@ -83,6 +117,20 @@ def parse_inventory_data(inventory_data, station_dict):
 
 # Stationen innerhalb eines Radius abrufen
 def get_stations_within_radius(lat, lon, radius, limit, start_year, end_year):
+    """
+    Retrieves weather stations within a given radius from a specific location.
+
+    Args:
+        lat (float): Latitude of the central point.
+        lon (float): Longitude of the central point.
+        radius (float): Maximum distance in kilometers.
+        limit (int): Maximum number of stations to return.
+        start_year (int): Minimum start year of station data.
+        end_year (int): Maximum end year of station data.
+
+    Returns:
+        tuple: (List of stations sorted by distance, HTTP status code 200)
+    """
     stations = read_data().get("stations", [])
     stations_with_distance = []
     
@@ -103,6 +151,18 @@ def get_stations_within_radius(lat, lon, radius, limit, start_year, end_year):
 
 # Haversine-Formel zur Berechnung der Entfernung zwischen zwei Koordinaten
 def haversine(lat1, lon1, lat2, lon2):
+    """
+    Computes the Haversine distance between two geographic coordinates.
+    
+    Args:
+        lat1 (float): Latitude of the first location.
+        lon1 (float): Longitude of the first location.
+        lat2 (float): Latitude of the second location.
+        lon2 (float): Longitude of the second location.
+    
+    Returns:
+        float: Distance between the two points in kilometers.
+    """
     R = 6371  # Radius of Earth in km
     dlat = math.radians(lat2 - lat1)
     dlon = math.radians(lon2 - lon1)
@@ -112,6 +172,17 @@ def haversine(lat1, lon1, lat2, lon2):
 
 # Daten einer Station abrufen
 def get_station_data(station_id, start_year, end_year):
+    """
+    Retrieves and processes weather data for a given station ID within a time range.
+    
+    Args:
+        station_id (str): Unique identifier of the weather station.
+        start_year (int): Start year for data retrieval.
+        end_year (int): End year for data retrieval.
+    
+    Returns:
+        tuple: (Processed weather data, HTTP status code 200)
+    """
     parsed_station_data = fetch_and_parse(lambda: fetch_station_data(station_id), parse_station_data, start_year, end_year)
     yearly_monthly_averages = calculate_averages(parsed_station_data)
 
@@ -119,6 +190,17 @@ def get_station_data(station_id, start_year, end_year):
 
 # Stationsdaten parsen
 def parse_station_data(station_data, start_year, end_year):
+    """
+    Parses station weather data and extracts temperature information within a given year range.
+    
+    Args:
+        station_data (str): Raw data string from the weather station.
+        start_year (int): Start year for filtering data.
+        end_year (int): End year for filtering data.
+    
+    Returns:
+        dict: Dictionary containing parsed weather data.
+    """
     lines = station_data.splitlines()
     header = lines.pop(0).strip()  # Entferne die Kopfzeile
 
@@ -159,6 +241,15 @@ def parse_station_data(station_data, start_year, end_year):
 
 # Durchschnittstemperaturen der einzelnen Jahre/Jahreszeiten berechnen
 def calculate_averages(data):
+    """
+    Computes yearly and seasonal temperature averages from station data.
+    
+    Args:
+        data (dict): Parsed station temperature data.
+    
+    Returns:
+        list: List of dictionaries containing average temperatures per year and season.
+    """
     seasonal_months = {
         "spring": {3, 4, 5},
         "summer": {6, 7, 8},
