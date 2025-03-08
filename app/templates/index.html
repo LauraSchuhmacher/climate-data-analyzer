@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Klimadaten-Analyse</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script type="module" src="{{ url_for('static', filename='JS/main.js') }}" defer></script>
+    <link rel="icon" href="{{ url_for('static', filename='icons/favicon.png') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>Klimadaten-Analyse</h1>
+        
+        <div class="search-container">
+            <div class="section">
+                <h2>Suchbereich</h2>
+                <div class="label-input">
+                    <label>Breitengrad: <input type="number" step="any" id="latitude" min="-90" max="90" placeholder="Breitengrad">
+                        <span class="info-icon">ℹ
+                            <span class="tooltip">O: positive Werte 0° bis 90°<br> W: negative Werte -90° bis 0°</span>
+                        </span>
+                    </label>
+                </div>
+                <div class="label-input">
+                    <label>Längengrad: <input type="number" step="any" id="longitude" min="-180" max="180" placeholder="Längengrad">
+                        <span class="info-icon">ℹ
+                            <span class="tooltip">N: positive Werte 0° bis 180° <br> S: negative Werte -180° bis 0°</span>
+                        </span>
+                    </label>
+                </div>
+                <h2>Suchradius & Konfiguration</h2>
+                <div class="configuration">
+                    <div class="label-input">
+                        <label>Suchradius (in km): <input type="number" id="radius" value="80" placeholder="Suchradius"></label>
+                    </div>
+                    <div class="label-input">
+                        <label>Max. Anzahl Stationen: <input type="number" id="limit" value="10" max="10" placeholder="Max. Anzahl Stationen"></label>
+                    </div>
+                    <div class="period">
+                        <label>Zeitraum (Jahr): <select id="startYear" type="number" name="startYear" value="1850"></select> <span class="dash">-</span> <select id="endYear" type="number" name="endYear" value="2023"></select> </label>
+                    </div>
+                    <div>
+                        <button id="searchButton" class="button">Stationen suchen</button> 
+                    </div>
+                </div>
+            </div>
+        
+            <div class="section">
+                <!-- Karte wird hier angezeigt -->
+                <div id="map"></div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Auswertung</h2>
+            <div class="evaluation">
+                <div>
+                    <label>Anzeigetyp:
+                        <select id="displayType">
+                            <option value="both">Beides</option>
+                            <option value="graphic">Grafisch</option>
+                            <option value="table">Tabellarisch</option>
+                        </select>
+                    </label>
+                </div>
+                <div>   
+                    <button id="evaluateButton" class="button">Auswerten</button> 
+                </div>
+            </div>
+            <div id="search-results"></div>
+            <div id="chart-container"></div>
+            <div id="table-data"></div>
+        </div>
+    </div>
+
+</body>
+</html>
