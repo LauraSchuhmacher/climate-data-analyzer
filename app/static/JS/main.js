@@ -1,10 +1,28 @@
 // main.js
+// ======================================================
+// Dieses Modul steuert die Geschäftslogik und UI-Aktualisierungen.
+// Es importiert Funktionen aus den Modulen backend.js, helpers.js und map.js.
+// ======================================================
+
 import { fetchStations, fetchStationData } from './backend.js';
-import { 
-  validateRequiredFields, preventInputValues, setupInputLimits, 
-  populateYearOptions, updateYearOptions, createCanvas, generateChartDatasets, 
-  chartOptions, formatFloat, swapSeasonsForSouthernHemisphere 
+import {
+  validateRequiredFields,
+  preventInputValues,
+  setupInputLimits,
+  populateYearOptions,
+  updateYearOptions,
+  createCanvas,
+  generateChartDatasets,
+  chartOptions,
+  formatFloat,
+  swapSeasonsForSouthernHemisphere
 } from './helpers.js';
+import {
+  initializeMap,
+  createStationMarker,
+  highlightMarker,
+  updateUserPosition
+} from './map.js';
 
 // Konstanten für Icon-Pfade
 const STATION_ICON_PATH = 'static/icons/station-icon.svg';
@@ -17,61 +35,37 @@ const endYearSelect = document.getElementById('endYear');
 startYearSelect.value = startYear;
 endYearSelect.value = endYear;
 
-let selectedStationId = null, chartInstance = null, map, userMarker, radiusCircle;
-let stationMarkers = [], selectedMarker = null;
-let lat = null, lon = null;
+let selectedStationId = null;         // Aktuell ausgewählte Stations-ID
+let chartInstance = null;             // Referenz auf das aktuelle Chart (falls vorhanden)
+let map, userMarker, radiusCircle;    // Leaflet-Kartenobjekte
+let stationMarkers = [];              // Array mit allen erstellten Stations-Markern
+let selectedMarker = null;            // Der aktuell hervorgehobene Marker
+let lat = null, lon = null;           // Aktuelle Benutzerkoordinaten
+
+// DOM-Elemente für UI-Komponenten
 const searchButton = document.getElementById('searchButton');
 const evaluateButton = document.getElementById('evaluateButton');
 const chartContainer = document.getElementById('chart-container');
 const tableDataContainer = document.getElementById('table-data');
 const stationsContainer = document.getElementById('search-results');
 
-// Initialisiert die Karte
-const initializeMap = () => {
-  console.log("Initialisiere Karte");
-  const initialLat = 52.5162; 
-  const initialLon = 13.3777;
-  const initialZoom = 5;
+// ======================================================
+// Karteninitialisierung
+// ======================================================
+const { map: _map, userMarker: _userMarker, radiusCircle: _radiusCircle } = initializeMap();
+map = _map;
+userMarker = _userMarker;
+radiusCircle = _radiusCircle;
 
-  map = L.map('map').setView([initialLat, initialLon], initialZoom);
+// ======================================================
+// UI-Funktionen
+// ======================================================
 
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-  }).addTo(map);
-
-  // Erster Marker und Kreis
-  userMarker = L.marker([initialLat, initialLon]).addTo(map);
-  radiusCircle = L.circle([initialLat, initialLon], { radius: 1000, color: 'blue', fillColor: 'blue', fillOpacity: 0.2 }).addTo(map);
-
-  // Klick-Event: Popup mit Koordinaten
-  map.on('click', (e) => {
-    const { lat, lng } = e.latlng;
-    L.popup()
-      .setLatLng(e.latlng)
-      .setContent(`<b>Koordinaten:</b><br>Latitude: ${lat.toFixed(4)}<br>Longitude: ${lng.toFixed(4)}`)
-      .openOn(map);
-  });
-};
-
-// Erzeugt einen Marker für eine Station
-const createStationMarker = station => {
-  const icon = L.icon({
-    iconUrl: STATION_ICON_PATH,
-    iconSize: [30, 30],
-    iconAnchor: [15, 15]
-  });
-  const marker = L.marker([station.latitude, station.longitude], { icon }).addTo(map);
-  marker.bindPopup(`
-    <b>${station.name}</b><br>
-    Latitude: ${station.latitude}<br>
-    Longitude: ${station.longitude}<br>
-    Mindate: ${station.mindate}<br>
-    Maxdate: ${station.maxdate}
-  `);
-  return marker;
-};
-
-// Erzeugt HTML für eine Tabellenzeile einer Station
+/**
+ * Erzeugt HTML für eine einzelne Tabellenzeile einer Station.
+ * @param {Object} station - Station-Objekt
+ * @returns {string} HTML-String für die Tabellenzeile
+ */
 const createStationRow = station => `
   <tr class="station-row" data-id="${station.id}">
     <td>${station.id}</td>
@@ -83,14 +77,17 @@ const createStationRow = station => `
   </tr>
 `;
 
-// Zeigt die gefundenen Stationen in der Tabelle an und erstellt Marker.
+/**
+ * Zeigt die gefundenen Stationen in einer Tabelle an und erstellt Marker auf der Karte.
+ * @param {Array} stations - Array von Station-Objekten
+ */
 const displayStations = stations => {
-  console.log("Stationen anzeigen");
   if (!stations.length) {
     alert("Es wurden keine Stationen gefunden, die den Suchkriterien entsprechen!");
     return;
   }
 
+  // Erzeuge die Tabelle mittels Template Literal
   stationsContainer.innerHTML = `
     <table>
       <thead>
@@ -110,6 +107,7 @@ const displayStations = stations => {
   `;
   stationsContainer.style.display = 'block';
 
+  // Füge Click-Eventlistener für jede Zeile hinzu, um die Station auszuwählen
   document.querySelectorAll('.station-row').forEach(row => {
     row.addEventListener('click', () => {
       clear('data');
@@ -117,16 +115,18 @@ const displayStations = stations => {
     });
   });
 
-  // Erstelle Marker für jede Station
+  // Erstelle Marker für jede Station und speichere sie im Array
   stations.forEach(station => {
-    const marker = createStationMarker(station);
+    const marker = createStationMarker(map, station, STATION_ICON_PATH);
     stationMarkers.push({ stationId: station.id, marker });
   });
 };
 
-// Löscht vorhandene UI-Elemente
+/**
+ * Entfernt vorhandene UI-Elemente wie Tabellen, Marker, Diagramme etc.
+ * @param {string} mode - 'all' oder 'data'
+ */
 const clear = (mode = 'all') => {
-  console.log(`Lösche bestehende Daten mit Modus: ${mode}`);
   if (mode === 'all') {
     stationsContainer.innerHTML = '';
     stationsContainer.style.display = 'none';
@@ -153,37 +153,42 @@ const clear = (mode = 'all') => {
   }
 };
 
-// Hebt die ausgewählte Station in Tabelle und Karte hervor.
+/**
+ * Hebt die ausgewählte Station in der Tabelle und auf der Karte hervor.
+ * @param {string} stationId - ID der auszuwählenden Station
+ */
 const highlightSelectedStationAndMarker = stationId => {
+  // Entferne 'selected'-Klasse von allen Zeilen
   document.querySelectorAll('.station-row').forEach(row => row.classList.remove('selected'));
+  // Füge die 'selected'-Klasse zur ausgewählten Zeile hinzu
   const row = document.querySelector(`.station-row[data-id="${stationId}"]`);
   row.classList.add('selected');
   selectedStationId = stationId;
-  console.log(`selectedStationId: ${selectedStationId}`);
 
+  // Setze ggf. den vorher ausgewählten Marker zurück
   if (selectedMarker) {
-    selectedMarker.setIcon(L.icon({
-      iconUrl: STATION_ICON_PATH,
-      iconSize: [30, 30],
-      iconAnchor: [15, 15]
-    }));
+    selectedMarker.setIcon(
+      L.icon({
+        iconUrl: STATION_ICON_PATH,
+        iconSize: [30, 30],
+        iconAnchor: [15, 15]
+      })
+    );
   }
+  // Finde den Marker der ausgewählten Station und hebe ihn hervor
   const found = stationMarkers.find(item => item.stationId === selectedStationId);
   if (found) {
     selectedMarker = found.marker;
-    selectedMarker.setIcon(L.icon({
-      iconUrl: SELECTED_ICON_PATH,
-      iconSize: [40, 40],
-      iconAnchor: [20, 20],
-      popupAnchor: [0, -30]
-    }));
-    map.setView(selectedMarker.getLatLng(), 9);
+    highlightMarker(map, selectedMarker, STATION_ICON_PATH, SELECTED_ICON_PATH);
   }
 };
 
-// Rendert Diagramm und/oder Tabelle basierend auf dem Anzeige-Typ.
+/**
+ * Rendert je nach ausgewähltem Anzeige-Typ (Diagramm, Tabelle oder beide) die Auswertung.
+ * @param {Array} data - Array von Daten (z. B. jährliche Temperaturwerte)
+ * @param {string} displayType - 'graphic', 'table' oder 'both'
+ */
 const renderDisplay = (data, displayType) => {
-  console.log("Auswertung anzeigen");
   if (displayType === 'graphic' || displayType === 'both') {
     renderChart(data);
     chartContainer.style.height = '400px';
@@ -200,7 +205,10 @@ const renderDisplay = (data, displayType) => {
   }
 };
 
-// Rendert das Diagramm mit Chart.js.
+/**
+ * Rendert ein Diagramm mit Chart.js.
+ * @param {Array} data - Array der auszuwertenden Daten
+ */
 const renderChart = data => {
   const ctx = createCanvas('chart-container');
   const labels = data.map(entry => entry.year);
@@ -212,7 +220,10 @@ const renderChart = data => {
   });
 };
 
-// Rendert die Auswertungstabelle.
+/**
+ * Rendert die Auswertungstabelle.
+ * @param {Array} data - Array der auszuwertenden Daten
+ */
 const renderTable = data => {
   const tableHtml = `
     <table>
@@ -232,7 +243,9 @@ const renderTable = data => {
         </tr>
       </thead>
       <tbody>
-        ${data.map(entry => `
+        ${data
+          .map(
+            entry => `
           <tr>
             <td>${entry.year}</td>
             <td>${formatFloat(entry.tmax)}</td>
@@ -246,14 +259,23 @@ const renderTable = data => {
             <td>${formatFloat(entry.winter_tmax)}</td>
             <td>${formatFloat(entry.winter_tmin)}</td>
           </tr>
-        `).join('')}
+        `
+          )
+          .join('')}
       </tbody>
     </table>
   `;
   tableDataContainer.innerHTML = tableHtml;
 };
 
-// Handler für das Suchen von Stationen.
+// ======================================================
+// Handler-Funktionen für API-Aufrufe und UI-Aktualisierung
+// ======================================================
+
+/**
+ * Handler für das Suchen von Stationen.
+ * Liest die Eingabewerte, aktualisiert die Benutzerposition und ruft die Stationsdaten ab.
+ */
 const searchStationsHandler = async () => {
   selectedStationId = null;
   lat = parseFloat(document.getElementById('latitude').value).toFixed(4);
@@ -266,10 +288,11 @@ const searchStationsHandler = async () => {
   clear('all');
   if (!validateRequiredFields()) return;
 
-  // Aktualisiere die Benutzerposition auf der Karte.
+  // Aktualisiere die Benutzerposition auf der Karte
+  const updated = updateUserPosition(map, lat, lon, userMarker, radiusCircle, radius);
+  userMarker = updated.userMarker;
+  radiusCircle = updated.radiusCircle;
   map.setView([lat, lon], 8);
-  userMarker = L.marker([lat, lon]).addTo(map);
-  radiusCircle = L.circle([lat, lon], { radius: radius * 1000, color: 'blue', fillColor: 'blue', fillOpacity: 0.2 }).addTo(map);
 
   try {
     const stations = await fetchStations(lat, lon, radius, limit, startYear, endYear);
@@ -279,7 +302,10 @@ const searchStationsHandler = async () => {
   }
 };
 
-// Handler für die Auswertung einer ausgewählten Station.
+/**
+ * Handler für die Auswertung einer ausgewählten Station.
+ * Liest die Jahr-Eingaben, ruft die Stationsdaten ab und rendert die Auswertung.
+ */
 const evaluateStationHandler = async () => {
   if (!selectedStationId) {
     alert("Bitte zuerst eine Station auswählen!");
@@ -291,6 +317,7 @@ const evaluateStationHandler = async () => {
   try {
     let data = await fetchStationData(selectedStationId, startYear, endYear);
     if (data && data.length > 0) {
+      // Bei südlichen Breiten ggf. die Jahreszeiten tauschen
       if (lat < 0) {
         data = swapSeasonsForSouthernHemisphere(data);
       }
@@ -301,24 +328,29 @@ const evaluateStationHandler = async () => {
   }
 };
 
-// Setzt Event-Listener und initialisiert die Anwendung.
+// ======================================================
+// Zentrales Event-Handling für alle UI-Elemente
+// ======================================================
+
+/**
+ * Registriert Event-Listener für alle UI-Elemente.
+ */
 const setupEventListeners = () => {
-  console.log("Setup Event-Listeners");
-  startYearSelect.addEventListener('change', () => {
-    updateYearOptions(parseInt(startYearSelect.value), endYearSelect, 'end');
-  });
-  endYearSelect.addEventListener('change', () => {
-    updateYearOptions(parseInt(endYearSelect.value), startYearSelect, 'start');
-  });
+  startYearSelect.addEventListener('change', () =>
+    updateYearOptions(parseInt(startYearSelect.value), endYearSelect, 'end')
+  );
+  endYearSelect.addEventListener('change', () =>
+    updateYearOptions(parseInt(endYearSelect.value), startYearSelect, 'start')
+  );
   searchButton.addEventListener('click', searchStationsHandler);
   evaluateButton.addEventListener('click', evaluateStationHandler);
   document.addEventListener('keydown', preventInputValues);
 };
 
-// Initialisierung, sobald der DOM geladen ist.
+// ======================================================
+// Initialisierung beim Laden des DOM
+// ======================================================
 document.addEventListener('DOMContentLoaded', () => {
-  console.log("DOM ist geladen");
-  initializeMap();
   populateYearOptions();
   setupEventListeners();
   setupInputLimits();

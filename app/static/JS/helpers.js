@@ -1,6 +1,13 @@
 // helpers.js
+// ======================================================
+// Dieses Modul enthält Hilfsfunktionen für Validierung, 
+// Input-Limits, Erzeugung von Canvas-Elementen, Chart-Optionen und Zahlformatierung.
+// ======================================================
 
-// Validiert, ob alle Pflichtfelder ausgefüllt sind.
+/**
+ * Validiert, ob alle Pflichtfelder (Länge, Breite, Radius, Limit) ausgefüllt sind.
+ * @returns {boolean} true, wenn alle Felder gefüllt sind, sonst false.
+ */
 export const validateRequiredFields = () => {
     const requiredFields = [
       document.getElementById('longitude'),
@@ -25,30 +32,34 @@ export const validateRequiredFields = () => {
     return isValid;
   };
   
-  // Unterbindet unerlaubte Tasteneingaben.
+  /**
+   * Unterbindet unerlaubte Tasteneingaben in den Input-Feldern.
+   * @param {KeyboardEvent} e - Das Tastaturereignis.
+   */
   export const preventInputValues = (e) => {
     const numberRegex = /^[0-9]$/;
     const floatRegex = /^-?[0-9]*[.,]?[0-9]*$/;
     const allowedKeys = ['Backspace', 'ArrowLeft', 'ArrowRight', 'Tab'];
   
-    // Für Limit & Radius nur ganze Zahlen erlauben
+    // Für Limit & Radius: Erlaube nur Ziffern
     if ((e.target.id === 'limit' || e.target.id === 'radius') &&
-      !numberRegex.test(e.key) &&
-      !allowedKeys.includes(e.key)) {
+        !numberRegex.test(e.key) &&
+        !allowedKeys.includes(e.key)) {
       e.preventDefault();
     }
   
-    // Für Längen- & Breitengrad Float-Werte erlauben
+    // Für Länge & Breite: Erlaube Float-Werte
     if ((e.target.id === 'longitude' || e.target.id === 'latitude') &&
-      !floatRegex.test(e.target.value + e.key) &&
-      !allowedKeys.includes(e.key)) {
+        !floatRegex.test(e.target.value + e.key) &&
+        !allowedKeys.includes(e.key)) {
       e.preventDefault();
     }
   };
   
-
-
-  // Setzt Input-Limits für Längen-, Breitengrad, Limit und Radius.
+  /**
+   * Setzt Eingabe-Limits für die Felder Länge, Breite, Limit und Radius.
+   * Verhindert, dass Werte außerhalb des erlaubten Bereichs eingegeben werden.
+   */
   export const setupInputLimits = () => {
     const longitude = document.getElementById('longitude');
     const latitude = document.getElementById('latitude');
@@ -56,7 +67,6 @@ export const validateRequiredFields = () => {
     const radius = document.getElementById('radius');
   
     longitude.addEventListener('input', () => {
-      // Wenn der Wert nur "-" oder leer ist, überspringen.
       if (longitude.value === '-' || longitude.value === '') return;
       const val = parseFloat(longitude.value);
       if (!isNaN(val)) {
@@ -103,9 +113,9 @@ export const validateRequiredFields = () => {
     });
   };
   
-  
-  
-  // Füllt die Jahr-Auswahlfelder.
+  /**
+   * Füllt die Jahr-Auswahlfelder mit Werten von 1763 bis 2024.
+   */
   export const populateYearOptions = () => {
     console.log("Befülle Zeitraum-Optionen");
     const startYearSelect = document.getElementById('startYear');
@@ -127,7 +137,12 @@ export const validateRequiredFields = () => {
     endYearSelect.value = 2024;
   };
   
-  // Aktualisiert die Optionen der Jahr-Auswahl basierend auf der Auswahl.
+  /**
+   * Aktualisiert die Optionen der Jahr-Auswahl basierend auf einer gegebenen Auswahl.
+   * @param {number} year - Das Referenzjahr.
+   * @param {HTMLSelectElement} select - Das zu aktualisierende Select-Element.
+   * @param {string} type - 'start' oder 'end'
+   */
   export const updateYearOptions = (year, select, type) => {
     for (let option of select.options) {
       const optionYear = parseInt(option.value);
@@ -135,7 +150,11 @@ export const validateRequiredFields = () => {
     }
   };
   
-  // Erstellt ein Canvas-Element in einem Container.
+  /**
+   * Erstellt ein Canvas-Element in einem angegebenen Container.
+   * @param {string} containerId - Die ID des Containers.
+   * @returns {CanvasRenderingContext2D} Den 2D-Kontext des Canvas.
+   */
   export const createCanvas = (containerId) => {
     const container = document.getElementById(containerId);
     container.innerHTML = '';
@@ -144,7 +163,11 @@ export const validateRequiredFields = () => {
     return canvas.getContext('2d');
   };
   
-  // Generiert Chart-Datensätze aus den Daten.
+  /**
+   * Generiert Chart-Datensätze (Datasets) aus den Daten für Chart.js.
+   * @param {Array} data - Array von Datenobjekten.
+   * @returns {Array} Array von Dataset-Objekten.
+   */
   export const generateChartDatasets = (data) => [
     { label: 'TMAX', data: data.map(entry => entry.tmax), borderColor: 'red', fill: false },
     { label: 'TMIN', data: data.map(entry => entry.tmin), borderColor: 'blue', fill: false },
@@ -158,7 +181,10 @@ export const validateRequiredFields = () => {
     { label: 'Winter TMIN', data: data.map(entry => entry.winter_tmin || null), borderColor: 'Purple', fill: false, hidden: true }
   ];
   
-  // Chart-Optionen für Chart.js
+  /**
+   * Gibt die Chart-Optionen für Chart.js zurück.
+   * @returns {Object} Optionen für Chart.js.
+   */
   export const chartOptions = () => ({
     responsive: true,
     maintainAspectRatio: false,
@@ -173,7 +199,11 @@ export const validateRequiredFields = () => {
     }
   });
   
-  // Formatiert Fließkommazahlen.
+  /**
+   * Formatiert Fließkommazahlen. Gibt "-" zurück, wenn der Wert null oder undefined ist.
+   * @param {*} value - Die Zahl, die formatiert werden soll.
+   * @returns {string} Formatierte Zahl als String.
+   */
   export const formatFloat = (value) => {
     if (value === null || value === undefined) {
       return '-';
@@ -181,7 +211,11 @@ export const validateRequiredFields = () => {
     return Number.isInteger(value) ? value.toFixed(1) : value;
   };
   
-  // Tauscht die Jahreszeiten für Daten aus der Südhalbkugel.
+  /**
+   * Tauscht die Jahreszeiten für Daten aus der Südhalbkugel.
+   * @param {Array} data - Array von Datenobjekten.
+   * @returns {Array} Das modifizierte Datenarray.
+   */
   export const swapSeasonsForSouthernHemisphere = (data) => {
     console.log("Jahreszeiten tauschen für Südhalbkugel");
     data.forEach(entry => {
