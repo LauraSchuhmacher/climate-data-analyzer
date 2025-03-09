@@ -27,7 +27,7 @@ export const validateRequiredFields = () => {
     });
   
     if (!isValid) {
-      alert("Bitte füllen Sie alle Pflichtfelder aus!");
+      alert("Bitte füllen Sie alle Pflichtfelder korrekt aus!");
     }
     return isValid;
   };
