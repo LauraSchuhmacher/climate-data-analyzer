@@ -1,9 +1,35 @@
-from app import haversine, get_stations_within_radius, parse_station_data, fetch_station_data, calculate_averages
-  
-def test_haversine():
-    assert round(haversine(0, 0, 0, 0), 2) == 0.0
-    assert round(haversine(0, 0, 0, 1), 2) == 111.19
-    assert round(haversine(48.8566, 2.3522, 51.5074, -0.1278), 2) == 343.56
+from business import haversine, get_stations_within_radius, parse_station_data,  calculate_averages, parse_stations_data, parse_inventory_data
+
+def test_parse_stations_data():
+    stations = """ACW00011604  17.1167  -61.7833   10.1    ST JOHNS COOLIDGE FLD                       
+ACW00011647  17.1333  -61.7833   19.2    ST JOHNS                                    
+AE000041196  25.3330   55.5170   34.0    SHARJAH INTER. AIRP            GSN     41196
+AEM00041194  25.2550   55.3640   10.4    DUBAI INTL                             41194
+    """
+
+    expected_output = {
+    "ACW00011604": {"id": "ACW00011604", "latitude": 17.1167, "longitude": -61.7833, "elevation": 10.1, "state": None, "name": "ST JOHNS COOLIDGE FLD", "mindate": None, "maxdate": None},
+    "ACW00011647": {"id": "ACW00011647", "latitude": 17.1333, "longitude": -61.7833, "elevation": 19.2, "state": None, "name": "ST JOHNS", "mindate": None, "maxdate": None},
+    "AE000041196": {"id": "AE000041196", "latitude": 25.3330, "longitude": 55.5170, "elevation": 34.0, "state": None, "name": "SHARJAH INTER. AIRP", "mindate": None, "maxdate": None},
+    "AEM00041194": {"id": "AEM00041194", "latitude": 25.2550, "longitude": 55.3640, "elevation": 10.4, "state": None, "name": "DUBAI INTL", "mindate": None, "maxdate": None}
+    }
+
+    result = parse_stations_data(stations)
+    assert result == expected_output
+
+def test_parse_inventory_data():
+    raw_data =  """AEM00041194  25.2550   55.3640 TMAX 1983 2025
+AEM00041194  25.2550   55.3640 TMIN 1983 2025
+AEM00041194  25.2550   55.3640 PRCP 1983 2025
+AEM00041194  25.2550   55.3640 TAVG 1983 2025
+
+    """
+    stations = {
+    "AEM00041194": {"id": "AEM00041194", "latitude": 25.2550, "longitude": 55.3640, "elevation": 10.4, "state": None, "name": "DUBAI INTL", "mindate": None, "maxdate": None}
+    }
+    result = parse_inventory_data(raw_data, stations)
+    assert result[0]["mindate"] == 1983
+    assert result[0]["maxdate"] == 2025
 
 def test_get_stations_within_radius():
     # Test: Stationen im Umkreis von Villingen-Schwenningen und korrektem Jahr
@@ -31,6 +57,11 @@ def test_get_stations_within_radius():
     # Edge cases
     assert len(get_stations_within_radius(48.0528, 8.4858, 0, 10, 1900, 2023)) == len(([], 200)) # Radius 0
     assert len(get_stations_within_radius(48.0528, 8.4858, 40.030, 0, 1900, 2023)) == len(([], 200)) # Limit 0
+
+def test_haversine():
+    assert round(haversine(0, 0, 0, 0), 2) == 0.0
+    assert round(haversine(0, 0, 0, 1), 2) == 111.19
+    assert round(haversine(48.8566, 2.3522, 51.5074, -0.1278), 2) == 343.56
 
 def test_parse_station_data():
     test_data = """
@@ -87,10 +118,6 @@ def test_parse_station_data():
     assert parse_station_data(test_data, 1945, 1952) == expected_result_all
     # Test: Keine Werte in diesem Jahr (Datenlücke)
     assert parse_station_data(test_data, 1948, 1948) == {"results":[]}
-
-
-def test_fetch_station_data():
-    assert len(fetch_station_data("GME00120934", 2000, 2010)) != 0
 
 def test_calculate_averages():
     sample_data = {"results": [{"date": "20000102", "datatype": "TMAX", "value": -20},
@@ -153,14 +180,20 @@ def test_calculate_averages():
     result = calculate_averages(sample_data)
     assert len(result) > 0
     assert result == expected_result
-  
+
+
+
+
 
 if __name__ == "__main__":
-    test_haversine()
+    test_parse_station_data()
+    test_parse_inventory_data()
     test_get_stations_within_radius()
-    test_fetch_station_data()
+    test_haversine()
     test_parse_station_data()
     test_calculate_averages()
+
+
 
 
 

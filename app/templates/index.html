@@ -6,8 +6,8 @@
     <title>Klimadaten-Analyse</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <link rel="icon" href="/static/icons/favicon.png">
     <script type="module" src="{{ url_for('static', filename='JS/main.js') }}" defer></script>
+    <link rel="icon" href="{{ url_for('static', filename='icons/favicon.png') }}">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 </head>
@@ -21,14 +21,14 @@
                 <div class="label-input">
                     <label>Breitengrad: <input type="number" step="any" id="latitude" min="-90" max="90" placeholder="Breitengrad">
                         <span class="info-icon">ℹ
-                            <span class="tooltip">O: positive Werte 0 bis 90<br> W: negative Werte -90 bis 0</span>
+                            <span class="tooltip">O: positive Werte 0° bis 90°<br> W: negative Werte -90° bis 0°</span>
                         </span>
                     </label>
                 </div>
                 <div class="label-input">
                     <label>Längengrad: <input type="number" step="any" id="longitude" min="-180" max="180" placeholder="Längengrad">
                         <span class="info-icon">ℹ
-                            <span class="tooltip">N: positive Werte 0 bis 180 <br> S: negative Werte -180 bis 0</span>
+                            <span class="tooltip">N: positive Werte 0° bis 180° <br> S: negative Werte -180° bis 0°</span>
                         </span>
                     </label>
                 </div>
