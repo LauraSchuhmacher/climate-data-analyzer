@@ -171,14 +171,14 @@ export const validateRequiredFields = () => {
   export const generateChartDatasets = (data) => [
     { label: 'TMAX', data: data.map(entry => entry.tmax), borderColor: 'red', fill: false },
     { label: 'TMIN', data: data.map(entry => entry.tmin), borderColor: 'blue', fill: false },
-    { label: 'Frühling TMAX', data: data.map(entry => entry.spring_tmax || null), borderColor: 'SeaGreen', fill: false, hidden: true },
-    { label: 'Frühling TMIN', data: data.map(entry => entry.spring_tmin || null), borderColor: 'LimeGreen', fill: false, hidden: true },
-    { label: 'Sommer TMAX', data: data.map(entry => entry.summer_tmax || null), borderColor: 'DarkOrange', fill: false, hidden: true },
-    { label: 'Sommer TMIN', data: data.map(entry => entry.summer_tmin || null), borderColor: 'Orange', fill: false, hidden: true },
-    { label: 'Herbst TMAX', data: data.map(entry => entry.fall_tmax || null), borderColor: 'Chocolate', fill: false, hidden: true },
-    { label: 'Herbst TMIN', data: data.map(entry => entry.fall_tmin || null), borderColor: 'Peru', fill: false, hidden: true },
-    { label: 'Winter TMAX', data: data.map(entry => entry.winter_tmax || null), borderColor: 'DarkViolet', fill: false, hidden: true },
-    { label: 'Winter TMIN', data: data.map(entry => entry.winter_tmin || null), borderColor: 'Purple', fill: false, hidden: true }
+    { label: 'Frühling TMAX', data: data.map(entry => entry.spring_tmax ?? null), borderColor: 'SeaGreen', fill: false, hidden: true },
+    { label: 'Frühling TMIN', data: data.map(entry => entry.spring_tmin ?? null), borderColor: 'LimeGreen', fill: false, hidden: true },
+    { label: 'Sommer TMAX', data: data.map(entry => entry.summer_tmax ?? null), borderColor: 'DarkOrange', fill: false, hidden: true },
+    { label: 'Sommer TMIN', data: data.map(entry => entry.summer_tmin ?? null), borderColor: 'Orange', fill: false, hidden: true },
+    { label: 'Herbst TMAX', data: data.map(entry => entry.fall_tmax ?? null), borderColor: 'Chocolate', fill: false, hidden: true },
+    { label: 'Herbst TMIN', data: data.map(entry => entry.fall_tmin ?? null), borderColor: 'Peru', fill: false, hidden: true },
+    { label: 'Winter TMAX', data: data.map(entry => entry.winter_tmax ?? null), borderColor: 'DarkViolet', fill: false, hidden: true },
+    { label: 'Winter TMIN', data: data.map(entry => entry.winter_tmin ?? null), borderColor: 'Purple', fill: false, hidden: true }
   ];
   
   /**
