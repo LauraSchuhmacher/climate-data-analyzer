@@ -70,11 +70,11 @@ const createStationRow = station => `
   <tr class="station-row" data-id="${station.id}">
     <td>${station.id}</td>
     <td>${station.name}</td>
-    <td>${station.latitude.toFixed(4)}</td>
-    <td>${station.longitude.toFixed(4)}</td>
+    <td>${station.latitude.toFixed(4)}°</td>
+    <td>${station.longitude.toFixed(4)}°</td>
     <td>${station.mindate}</td>
     <td>${station.maxdate}</td>
-    <td>${station.distance} km</td>
+    <td>${station.distance.toFixed(2)} km</td>
   </tr>
 `;
 
