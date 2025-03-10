@@ -74,6 +74,7 @@ const createStationRow = station => `
     <td>${station.longitude}</td>
     <td>${station.mindate}</td>
     <td>${station.maxdate}</td>
+    <td>${station.distance}</td>
   </tr>
 `;
 
@@ -98,6 +99,7 @@ const displayStations = stations => {
           <th>Länge</th>
           <th>Mindate</th>
           <th>Maxdate</th>
+          <th>Distanz (in km)</th>
         </tr>
       </thead>
       <tbody>
