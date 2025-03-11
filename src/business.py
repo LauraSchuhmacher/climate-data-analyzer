@@ -183,8 +183,8 @@ def get_station_data(station_id, start_year, end_year):
     Returns:
         tuple: (Processed weather data, HTTP status code 200)
     """
-    parsed_station_data = fetch_and_parse(lambda: fetch_station_data(station_id), parse_station_data, start_year, end_year)
-    yearly_monthly_averages = calculate_averages(parsed_station_data)
+    parsed_station_data = fetch_and_parse(lambda: fetch_station_data(station_id), parse_station_data, start_year-1, end_year)
+    yearly_monthly_averages = calculate_averages(parsed_station_data, start_year, end_year)
 
     return yearly_monthly_averages, 200
 
@@ -240,12 +240,15 @@ def parse_station_data(station_data, start_year, end_year):
 
 
 # Durchschnittstemperaturen der einzelnen Jahre/Jahreszeiten berechnen
-def calculate_averages(data):
+def calculate_averages(data, start_year, end_year):
     """
-    Computes yearly and seasonal temperature averages from station data.
+    Computes yearly and seasonal temperature averages from station data,
+    considering only data within the specified start and end years.
     
     Args:
         data (dict): Parsed station temperature data.
+        start_year (int): The start year for filtering data.
+        end_year (int): The end year for filtering data.
     
     Returns:
         list: List of dictionaries containing average temperatures per year and season.
@@ -269,6 +272,9 @@ def calculate_averages(data):
 
             datatype = entry.get("datatype")
             value = entry.get("value")
+
+            if not (start_year <= year <= end_year) and winter_year != start_year:
+                continue  # Überspringe Eintrag wenn Jahr außerhalb des Bereichs liegt
 
             if datatype not in {"TMAX", "TMIN"} or value is None:
                 continue  # Überspringe Eintrag wenn kein TMAX oder TMIN Wert vorhanden ist.
