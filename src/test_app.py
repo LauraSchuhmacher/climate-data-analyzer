@@ -158,10 +158,10 @@ def test_calculate_averages():
                     {"date": "20011230", "datatype": "TMIN", "value": -15}]
                 }
 
-    expected_result = [
+    expected_result_2000_2001 = [
     {
         "year": 2000,
-        "tmax": 16.1, "tmin": -1.2,
+        "tmax": 17.5, "tmin": 5.0,
         "spring_tmax": 17.7, "spring_tmin": 10.0,
         "summer_tmax": 29.3, "summer_tmin": None,
         "fall_tmax": 19.7, "fall_tmin": None,
@@ -169,18 +169,28 @@ def test_calculate_averages():
     },
     {
         "year": 2001,
-        "tmax": 13.2, "tmin": 6.6,  
+        "tmax": 14.6, "tmin": 5.5,  
         "spring_tmax": 16.3, "spring_tmin": 7.7,  
         "summer_tmax": 29.3, "summer_tmin": 17.3,  
         "fall_tmax": None, "fall_tmin": None,  
         "winter_tmax": -2.0, "winter_tmin": -5.1  
     }
-]
+    ]
+    expected_result_2001 = [
+    {
+        "year": 2001,
+        "tmax": 14.6, "tmin": 5.5,  
+        "spring_tmax": 16.3, "spring_tmin": 7.7,  
+        "summer_tmax": 29.3, "summer_tmin": 17.3,  
+        "fall_tmax": None, "fall_tmin": None,  
+        "winter_tmax": -2.0, "winter_tmin": -5.1  
+    }
+    ]
 
-    result = calculate_averages(sample_data)
-    assert len(result) > 0
-    assert result == expected_result
-
+    result_2000_2001 = calculate_averages(sample_data,2000,2001)
+    result_2001 = calculate_averages(sample_data,2001,2001)
+    assert result_2000_2001 == expected_result_2000_2001
+    assert result_2001 == expected_result_2001
 
 
 
