@@ -265,19 +265,17 @@ def calculate_averages(data, start_year, end_year):
     for entry in data["results"]:
         try:
             date = datetime.datetime.strptime(entry["date"], "%Y%m%d")
-            year = date.year
+            year = date.year if date.month != 12 else date.year + 1 # Verschiebe Dezember in das Folgejahr
             month = date.month
-
-            winter_year = year if month != 12 else year + 1
 
             datatype = entry.get("datatype")
             value = entry.get("value")
 
-            if not (start_year <= year <= end_year) and winter_year != start_year:
-                continue  # Überspringe Eintrag wenn Jahr außerhalb des Bereichs liegt
+            if not (start_year <= year <= end_year + 1):
+                continue  # Überspringe Eintrag wenn Jahr außerhalb des Betrachtungszeitraums liegt
 
             if datatype not in {"TMAX", "TMIN"} or value is None:
-                continue  # Überspringe Eintrag wenn kein TMAX oder TMIN Wert vorhanden ist.
+                continue  # Überspringe Eintrag wenn kein TMAX oder TMIN Wert vorhanden ist
 
             if year not in year_data:
                 year_data[year] = {
@@ -293,21 +291,10 @@ def calculate_averages(data, start_year, end_year):
 
             for season, months in seasonal_months.items():
                 if month in months:
-                    if season == "winter":
-                        if winter_year not in year_data:
-                            year_data[winter_year] = {
-                                "tmax": [], "tmin": [],
-                                "seasons": {season: {"tmax": [], "tmin": []} for season in seasonal_months}
-                            }
-                        if datatype == "TMAX":
-                            year_data[winter_year]["seasons"]["winter"]["tmax"].append(value)
-                        elif datatype == "TMIN":
-                            year_data[winter_year]["seasons"]["winter"]["tmin"].append(value)
-                    else:
-                        if datatype == "TMAX":
-                            year_data[year]["seasons"][season]["tmax"].append(value)
-                        elif datatype == "TMIN":
-                            year_data[year]["seasons"][season]["tmin"].append(value)
+                    if datatype == "TMAX":
+                        year_data[year]["seasons"][season]["tmax"].append(value)
+                    elif datatype == "TMIN":
+                        year_data[year]["seasons"][season]["tmin"].append(value)
         except Exception as e:
             print(f"Skipping entry due to error: {e}, entry: {entry}")
 
@@ -321,6 +308,6 @@ def calculate_averages(data, start_year, end_year):
             season_averages[f"{season}_tmin"] = (round(sum(temps["tmin"]) / len(temps["tmin"]) / 10, 1) if temps["tmin"] else None)
 
         result.append({"year": year, "tmax": yearly_tmax, "tmin": yearly_tmin, **season_averages})
-    result.pop()  # Letztes Jahr entfernen. Es enthält unvollständige Daten.
+    result.pop()  # Entferne letztes Jahr, da es unvollständige Daten enthält
 
     return result
