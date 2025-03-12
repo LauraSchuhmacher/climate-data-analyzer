@@ -11,3 +11,4 @@ stations.json
 
 # VSCode
 .vscode/
+node_modules/

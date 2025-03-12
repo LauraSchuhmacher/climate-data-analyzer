@@ -82,7 +82,7 @@ const createStationRow = station => `
  * Zeigt die gefundenen Stationen in einer Tabelle an und erstellt Marker auf der Karte.
  * @param {Array} stations - Array von Station-Objekten
  */
-const displayStations = stations => {
+export const displayStations = stations => {
   if (!stations.length) {
     alert("Es wurden keine Stationen gefunden, die den Suchkriterien entsprechen!");
     return;
@@ -128,7 +128,7 @@ const displayStations = stations => {
  * Entfernt vorhandene UI-Elemente wie Tabellen, Marker, Diagramme etc.
  * @param {string} mode - 'all' oder 'data'
  */
-const clear = (mode = 'all') => {
+export const clear = (mode = 'all') => {
   if (mode === 'all') {
     stationsContainer.innerHTML = '';
     stationsContainer.style.display = 'none';
@@ -278,7 +278,7 @@ const renderTable = data => {
  * Handler für das Suchen von Stationen.
  * Liest die Eingabewerte, aktualisiert die Benutzerposition und ruft die Stationsdaten ab.
  */
-const searchStationsHandler = async () => {
+export const searchStationsHandler = async () => {
   selectedStationId = null;
   lat = parseFloat(document.getElementById('latitude').value).toFixed(4);
   lon = parseFloat(document.getElementById('longitude').value).toFixed(4);

@@ -9,7 +9,7 @@
  * @param {string} errorMessage - Fehlermeldung, falls der Abruf fehlschlägt.
  * @returns {Promise<Object>} Promise, das die JSON-Daten liefert.
  */
-const fetchData = async (url, errorMessage) => {
+export const fetchData = async (url, errorMessage) => {
     try {
       console.log(`API URL: ${url}`);
       const response = await fetch(url);
