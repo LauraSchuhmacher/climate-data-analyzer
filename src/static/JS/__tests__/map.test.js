@@ -1,34 +1,6 @@
 import { jest } from '@jest/globals';
 import { initializeMap, createStationMarker, highlightMarker, updateUserPosition } from '../map.js';
 
-// Mock der Leaflet-Funktionen
-global.L = {
-  map: jest.fn().mockReturnValue({
-    setView: jest.fn(),
-    tileLayer: jest.fn(),
-    on: jest.fn(),  
-    removeLayer: jest.fn(),  
-    addLayer: jest.fn(),  
-  }),
-  tileLayer: jest.fn().mockReturnValue({
-    addTo: jest.fn(),
-  }),
-  marker: jest.fn().mockReturnValue({
-    addTo: jest.fn(),
-    bindPopup: jest.fn(),
-    setIcon: jest.fn(),
-  }),
-  circle: jest.fn().mockReturnValue({
-    addTo: jest.fn(),
-  }),
-  icon: jest.fn().mockReturnValue({}),
-  popup: jest.fn().mockReturnValue({
-    setLatLng: jest.fn(),
-    setContent: jest.fn(),
-    openOn: jest.fn(),
-  }),
-};
-
 describe('initializeMap', () => {
   let mockMap;
 
@@ -65,7 +37,12 @@ describe('initializeMap', () => {
 
     // Ob User-Marker und Radius-Kreis hinzugefügt wurden
     expect(L.marker).toHaveBeenCalledWith([initialLat, initialLon]);
-    expect(L.circle).toHaveBeenCalledWith([initialLat, initialLon], expect.objectContaining({ radius: 1000 }));
+    expect(L.circle).toHaveBeenCalledWith([initialLat, initialLon],   expect.objectContaining({
+      radius: 80000,
+      color: 'blue',
+      fillColor: 'blue',
+      fillOpacity: 0.2
+    }));
   });
 
   it('should set click event listener for map', () => {

@@ -16,7 +16,7 @@ export const initializeMap = () => {
     const initialLat = 52.5162;
     const initialLon = 13.3777;
     const initialZoom = 5;
-  
+    const initialRadius = 80;
     const map = L.map('map').setView([initialLat, initialLon], initialZoom);
   
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -26,7 +26,7 @@ export const initializeMap = () => {
   
     const userMarker = L.marker([initialLat, initialLon]).addTo(map);
     const radiusCircle = L.circle([initialLat, initialLon], {
-      radius: 1000,
+      radius: initialRadius * 1000,
       color: 'blue',
       fillColor: 'blue',
       fillOpacity: 0.2

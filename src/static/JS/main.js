@@ -32,8 +32,8 @@ const SELECTED_ICON_PATH = 'static/icons/selected-icon.svg';
 let startYear = 1763, endYear = 2024;
 const startYearSelect = document.getElementById('startYear');
 const endYearSelect = document.getElementById('endYear');
-startYearSelect.value = startYear;
-endYearSelect.value = endYear;
+// startYearSelect.value = startYear;
+// endYearSelect.value = endYear;
 
 let selectedStationId = null;         // Aktuell ausgewählte Stations-ID
 let chartInstance = null;             // Referenz auf das aktuelle Chart (falls vorhanden)
@@ -287,9 +287,15 @@ export const searchStationsHandler = async () => {
   const radius = parseInt(document.getElementById('radius').value);
   const limit = parseInt(document.getElementById('limit').value);
 
+
   clear('all');
   if (!validateRequiredFields()) return;
-
+  console.log('lat: %d', lat);
+  console.log('lon: %d', lon);
+  console.log('startYear: %d', startYear);
+  console.log('endYear: %d', endYear);
+  console.log('radius: %d', radius);
+  console.log('limit: %d', limit);
   // Aktualisiere die Benutzerposition auf der Karte
   const updated = updateUserPosition(map, lat, lon, userMarker, radiusCircle, radius);
   userMarker = updated.userMarker;
@@ -308,7 +314,7 @@ export const searchStationsHandler = async () => {
  * Handler für die Auswertung einer ausgewählten Station.
  * Liest die Jahr-Eingaben, ruft die Stationsdaten ab und rendert die Auswertung.
  */
-const evaluateStationHandler = async () => {
+export const evaluateStationHandler = async () => {
   if (!selectedStationId) {
     alert("Bitte zuerst eine Station auswählen!");
     return;
@@ -353,6 +359,8 @@ const setupEventListeners = () => {
 // Initialisierung beim Laden des DOM
 // ======================================================
 document.addEventListener('DOMContentLoaded', () => {
+  startYearSelect.value = startYear;
+  endYearSelect.value = endYear;
   populateYearOptions();
   setupEventListeners();
   setupInputLimits();

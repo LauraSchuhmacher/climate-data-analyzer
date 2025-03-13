@@ -12,6 +12,12 @@ import {
     swapSeasonsForSouthernHemisphere
   } from '../helpers';
   
+  global.CanvasRenderingContext2D = class CanvasRenderingContext2D {};
+  HTMLCanvasElement.prototype.getContext = function () {
+    return new CanvasRenderingContext2D();
+  };
+  
+
   describe('helpers.js Tests', () => {
     
     beforeEach(() => {
@@ -23,6 +29,7 @@ import {
         <input id="limit" />
         <select id="startYear"></select>
         <select id="endYear"></select>
+        <div id="chart-container"></div>
       `;
     });
   
@@ -66,60 +73,60 @@ import {
       expect(validEvent.preventDefault).not.toHaveBeenCalled();
   });
   
-    it('should limit input values for longitude, latitude, limit, and radius', () => {
-      const longitudeInput = document.getElementById('longitude');
-      const latitudeInput = document.getElementById('latitude');
-      const limitInput = document.getElementById('limit');
-      const radiusInput = document.getElementById('radius');
-      
-      // Longitudes zwischen -180 und 180
-      longitudeInput.value = '100';
-      const longitudeValue = Number(longitudeInput.value);
-      setupInputLimits();
-      expect(longitudeValue).toBeGreaterThanOrEqual(-180);
-      expect(longitudeValue).toBeLessThanOrEqual(180);
- 
-      longitudeInput.value = '-100';
-      setupInputLimits();
-      expect(longitudeValue).toBeGreaterThanOrEqual(-180);
-      expect(longitudeValue).toBeLessThanOrEqual(180);
- 
-      // Latitude zwischen -90 und 90
-      latitudeInput.value = 35;
-      const latitudeValue = Number(latitudeInput.value);
-      setupInputLimits();
-      expect(latitudeValue).toBeGreaterThanOrEqual(-90);
-      expect(latitudeValue).toBeLessThanOrEqual(90);
-   
-      latitudeInput.value = -35;
-      setupInputLimits();
-      expect(latitudeValue).toBeGreaterThanOrEqual(-90);
-      expect(latitudeValue).toBeLessThanOrEqual(90);
+  it('should limit input values for longitude, latitude, limit, and radius', () => {
+    // Zuerst die Event-Listener registrieren
+    setupInputLimits();
+  
+    const longitudeInput = document.getElementById('longitude');
+    const latitudeInput = document.getElementById('latitude');
+    const limitInput = document.getElementById('limit');
+    const radiusInput = document.getElementById('radius');
     
-       // Limit zwischen 1 und 10
-      limitInput.value = 5;
-      const limitValue = Number(limitInput.value);
-      setupInputLimits();
-      expect(limitValue).toBeGreaterThanOrEqual(1);
-      expect(limitValue).toBeLessThanOrEqual(10);
+    // Longitudes zwischen -180 und 180
+    longitudeInput.value = '200';
+    longitudeInput.dispatchEvent(new Event('input'));
+    let longitudeValue = Number(longitudeInput.value);
+    expect(longitudeValue).toBeLessThanOrEqual(180);
   
-      //TODO: Elias was passiert wenn Stationenanzahl 0?
-    //   limitInput.value = 0;
-    //   setupInputLimits();
-    //   expect(limitValue).toBe(0);
+    longitudeInput.value = '-200';
+    longitudeInput.dispatchEvent(new Event('input'));
+    longitudeValue = Number(longitudeInput.value);
+    expect(longitudeValue).toBeGreaterThanOrEqual(-180);
   
-      // Radius zwischen 1 und 100
-      radiusInput.value = 50;
-      const radiusValue = Number(radiusInput.value);
-      setupInputLimits();
-      expect(radiusValue).toBeGreaterThanOrEqual(1);
-      expect(radiusValue).toBeLessThanOrEqual(100);
-      
-      //TODO: Elias was passiert wenn Radius 0?
-    //   radiusInput.value = 0;
-    //   setupInputLimits();
-    //   expect(radiusValue).toBe(0);
-    });
+    // Latitude zwischen -90 und 90
+    latitudeInput.value = '100';
+    latitudeInput.dispatchEvent(new Event('input'));
+    let latitudeValue = Number(latitudeInput.value);
+    expect(latitudeValue).toBeLessThanOrEqual(90);
+     
+    latitudeInput.value = '-100';
+    latitudeInput.dispatchEvent(new Event('input'));
+    latitudeValue = Number(latitudeInput.value);
+    expect(latitudeValue).toBeGreaterThanOrEqual(-90);
+    
+    // Limit zwischen 1 und 10
+    limitInput.value = '11';
+    limitInput.dispatchEvent(new Event('input'));
+    let limitValue = Number(limitInput.value);
+    expect(limitValue).toBeLessThanOrEqual(10);
+    
+    limitInput.value = '0';
+    limitInput.dispatchEvent(new Event('input'));
+    limitValue = Number(limitInput.value);
+    expect(limitValue).toBeGreaterThanOrEqual(1);
+    
+    // Radius zwischen 1 und 100
+    radiusInput.value = '110';
+    radiusInput.dispatchEvent(new Event('input'));
+    let radiusValue = Number(radiusInput.value);
+    expect(radiusValue).toBeLessThanOrEqual(100);
+    
+    radiusInput.value = '0';
+    radiusInput.dispatchEvent(new Event('input'));
+    radiusValue = Number(radiusInput.value);
+    expect(radiusValue).toBeGreaterThanOrEqual(1);
+  });
+  
   
     it('should populate year options for startYear and endYear', () => {
       populateYearOptions();
@@ -155,25 +162,30 @@ import {
       }
     });
 
-//TODO: müssen wir das testen??  
-    // // Test für createCanvas
-    // it('should create a canvas element', () => {
-    //   const ctx = createCanvas('startYear');
-    //   const canvas = document.querySelector('canvas');
+    // Test für createCanvas
+    it('should create a canvas element', () => {
+      const ctx = createCanvas('chart-container');
+      const canvas = document.querySelector('canvas');
       
-    //   expect(canvas).not.toBeNull();
-    //   expect(ctx).toBeInstanceOf(CanvasRenderingContext2D);
-    // });
+      expect(canvas).not.toBeNull();
+      expect(ctx).toBeInstanceOf(CanvasRenderingContext2D);
+    });
   
     it('should generate correct chart datasets', () => {
       const data = [
-        { tmax: 20, tmin: 10, spring_tmax: 25, spring_tmin: 15, summer_tmax: 30, summer_tmin: 20, fall_tmax: 22, fall_tmin: 12, winter_tmax: 10, winter_tmin: 0 }
+        { tmax: 20, tmin: 10, spring_tmax: null, spring_tmin: 0.0, summer_tmax: 30, summer_tmin: 20, fall_tmax: 22, fall_tmin: 12, winter_tmax: 10, winter_tmin: 0 }
       ];
       
       const datasets = generateChartDatasets(data);
       expect(datasets.length).toBe(10);
       expect(datasets[0].label).toBe('TMAX');
       expect(datasets[0].data).toEqual([20]);
+
+      expect(datasets[2].label).toBe('Frühling TMAX');
+      expect(datasets[2].data).toBeNull;
+
+      expect(datasets[3].label).toBe('Frühling TMIN');
+      expect(datasets[3].data).toEqual([0]);
     });
   
     it('should return the correct chart options', () => {
@@ -197,9 +209,13 @@ import {
       
       const swappedData = swapSeasonsForSouthernHemisphere(data);
       expect(swappedData[0].spring_tmax).toBe(22);
+      expect(swappedData[0].spring_tmin).toBe(12);
       expect(swappedData[0].fall_tmax).toBe(25);
+      expect(swappedData[0].fall_tmin).toBe(15);
       expect(swappedData[0].summer_tmax).toBe(10);
+      expect(swappedData[0].summer_tmin).toBe(0);
       expect(swappedData[0].winter_tmax).toBe(30);
+      expect(swappedData[0].winter_tmin).toBe(20);
     });
   
   });

@@ -5,12 +5,21 @@
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js"
   },
   "dependencies": {
-    "jest": "^29.7.0",
-    "jest-environment-jsdom": "^29.7.0",
-    "jest-fetch-mock": "^3.0.3"
+    "jest-environment-jsdom": "^29.7.0"
   },
   "jest": {
+    "setupFiles": [
+      "<rootDir>/jest.setup.js"
+    ],
     "testEnvironment": "jsdom",
-    "transform": {}
+    "transform": {},
+    "moduleNameMapper": {
+      "^backend$": "<rootDir>/src/static/JS/backend.js",
+      "^map$": "<rootDir>/src/static/JS/map.js"
+    }
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "jest-fetch-mock": "^3.0.3"
   }
 }
