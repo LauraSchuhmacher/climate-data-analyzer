@@ -1,4 +1,13 @@
-from business import haversine, get_stations_within_radius, parse_station_data,  calculate_averages, parse_stations_data, parse_inventory_data
+from business import (
+    haversine, get_stations_within_radius, parse_station_data, 
+    calculate_averages, parse_inventory_data, parse_stations_data
+)
+from external import (
+    fetch_url, STATIONS_URL_AWS, read_data, write_data
+)
+import requests
+import json
+from unittest.mock import patch, mock_open
 
 def test_parse_stations_data():
     stations = """ACW00011604  17.1167  -61.7833   10.1    ST JOHNS COOLIDGE FLD                       
@@ -17,6 +26,7 @@ AEM00041194  25.2550   55.3640   10.4    DUBAI INTL                             
     result = parse_stations_data(stations)
     assert result == expected_output
 
+
 def test_parse_inventory_data():
     raw_data =  """AEM00041194  25.2550   55.3640 TMAX 1983 2025
 AEM00041194  25.2550   55.3640 TMIN 1983 2025
@@ -30,6 +40,7 @@ AEM00041194  25.2550   55.3640 TAVG 1983 2025
     result = parse_inventory_data(raw_data, stations)
     assert result[0]["mindate"] == 1983
     assert result[0]["maxdate"] == 2025
+
 
 def test_get_stations_within_radius():
     # Test: Stationen im Umkreis von Villingen-Schwenningen und korrektem Jahr
@@ -58,10 +69,13 @@ def test_get_stations_within_radius():
     assert len(get_stations_within_radius(48.0528, 8.4858, 0, 10, 1900, 2023)) == len(([], 200)) # Radius 0
     assert len(get_stations_within_radius(48.0528, 8.4858, 40.030, 0, 1900, 2023)) == len(([], 200)) # Limit 0
 
+
 def test_haversine():
     assert round(haversine(0, 0, 0, 0), 2) == 0.0
     assert round(haversine(0, 0, 0, 1), 2) == 111.19
     assert round(haversine(48.8566, 2.3522, 51.5074, -0.1278), 2) == 343.56
+    assert round(haversine(90, 0, -90, 0), 2) == 20015.09
+
 
 def test_parse_station_data():
     test_data = """
@@ -118,6 +132,7 @@ def test_parse_station_data():
     assert parse_station_data(test_data, 1945, 1952) == expected_result_all
     # Test: Keine Werte in diesem Jahr (Datenlücke)
     assert parse_station_data(test_data, 1948, 1948) == {"results":[]}
+
 
 def test_calculate_averages():
     sample_data = {"results": [{"date": "20000102", "datatype": "TMAX", "value": -20},
@@ -193,6 +208,55 @@ def test_calculate_averages():
     assert result_2001 == expected_result_2001
 
 
+def test_fetch_url():
+    #assert fetch_url(STATIONS_URL_AWS, "stations data")== (200,)
+    #falsche URL
+    assert fetch_url(f"{STATIONS_URL_AWS}1", "stations data")[1:] == (500,)
+
+
+# Test read_data()
+def test_read_data_success():
+    mock_data = {"key": "value"}
+    with patch("builtins.open", mock_open(read_data=json.dumps(mock_data))):
+        assert read_data() == mock_data
+
+def test_read_data_file_not_found():
+    with patch("builtins.open", side_effect=FileNotFoundError()):
+        assert read_data() == {}
+
+def test_read_data_invalid_json():
+    with patch("builtins.open", mock_open(read_data="invalid json")):
+        assert read_data() == {}
+
+
+def test_write_data():
+    mock_data = {"key": "value"}
+    expected_content = json.dumps(mock_data, indent=4)
+
+    with patch("builtins.open", mock_open()) as mocked_file:
+        write_data(mock_data)
+        written_content = "".join(call_args[0][0] for call_args in mocked_file().write.call_args_list)
+        assert written_content == expected_content
+
+
+# Test fetch_url()
+@patch("requests.get")
+def test_fetch_url_success(mock_get):
+    mock_response = requests.Response()
+    mock_response.status_code = 200
+    mock_response._content = b"mock content"
+    mock_get.return_value = mock_response
+    
+    response = fetch_url("http://example.com", "test data")
+    assert isinstance(response, requests.Response)
+    assert response.status_code == 200
+    assert response.content == b"mock content"
+
+@patch("requests.get")
+def test_fetch_url_failure(mock_get):
+    mock_get.side_effect = requests.RequestException("Network error")
+    response = fetch_url("http://example.com", "test data")
+    assert response == ({"message": "Error fetching test data: Network error"}, 500)
 
 
 if __name__ == "__main__":
@@ -200,10 +264,11 @@ if __name__ == "__main__":
     test_parse_inventory_data()
     test_get_stations_within_radius()
     test_haversine()
-    test_parse_station_data()
     test_calculate_averages()
-
-
-
-
-
+    test_fetch_url()
+    test_read_data_success()
+    test_read_data_file_not_found()
+    test_read_data_invalid_json()
+    test_write_data()
+    test_fetch_url_success()
+    test_fetch_url_failure()
