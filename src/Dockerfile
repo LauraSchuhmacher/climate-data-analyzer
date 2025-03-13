@@ -1,4 +1,4 @@
-# Offizielles Python-Image als Basis
+# Python-Image als Basis
 FROM python:3.13-alpine
 
 # Arbeitsverzeichnis erstellen
@@ -9,7 +9,7 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Den Code kopieren
-COPY /src .
+COPY . .
 
 # Container-Port definieren
 EXPOSE 5000

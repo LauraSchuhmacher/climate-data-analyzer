@@ -1,14 +1,17 @@
 # Check if Docker is installed and running
 if (Get-Command docker -ErrorAction SilentlyContinue) {
     Write-Host "Docker is installed. Checking if it's running..."
-    if((docker ps 2>&1) -match '^(?!error)'){
+    if ((docker ps 2>&1) -match '^(?!error)') {
         # Build and start the container
-        if (Test-Path "docker-compose.yml") {
-            Write-Host "Docker is running. Starting container..."
-            docker-compose up --build
-         } else {
-            Write-Host "docker-compose.yml not found!"
-          }
+        $dockerfilePath = "src/Dockerfile"
+        $buildContext = "src"
+        if (Test-Path $dockerfilePath) {
+            Write-Host "Docker is running. Building and starting the container..."
+            docker build -t climate-data-analyzer -f $dockerfilePath $buildContext
+            docker run -d -p 5000:5000 --name lazy-lama climate-data-analyzer
+        } else {
+            Write-Host "Dockerfile not found in src/!"
+        }
     } else {
         Write-Host "Docker is installed but not running. Please start Docker and try again."
     }
