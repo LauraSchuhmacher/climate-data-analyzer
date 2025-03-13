@@ -9,15 +9,10 @@
   },
   "jest": {
     "setupFiles": [
-      "<rootDir>/jest.setup.js"
+      "<rootDir>/src/static/JS/jest/jest.setup.js"
     ],
     "testEnvironment": "jsdom",
-    "transform": {},
-    "moduleNameMapper": {
-      "^backend$": "<rootDir>/src/static/JS/backend.js",
-      "^map$": "<rootDir>/src/static/JS/map.js",
-      "^helpers$": "<rootDir>/src/static/JS/helpers.js"
-    }
+    "transform": {}
   },
   "devDependencies": {
     "jest": "^29.7.0",

@@ -24,13 +24,13 @@ beforeEach(async () => {
   global.alert = jest.fn();
 
   // Mocks neu registrieren
-  await jest.unstable_mockModule('backend', () => ({
+  await jest.unstable_mockModule('../backend.js', () => ({
     fetchStations: jest.fn(),
     fetchStationData: jest.fn(),
   }));
-  backend = await import('backend');
+  backend = await import('../backend.js');
 
-  await jest.unstable_mockModule('map', () => ({
+  await jest.unstable_mockModule('../map.js', () => ({
     initializeMap: () => ({
       map: {
         closePopup: jest.fn(),
@@ -45,7 +45,7 @@ beforeEach(async () => {
     updateUserPosition: jest.fn(() => ({ userMarker: {}, radiusCircle: {} })),
   }));
 
-  await jest.unstable_mockModule('helpers', () => ({
+  await jest.unstable_mockModule('../helpers.js', () => ({
     validateRequiredFields: jest.fn(() => true), // immer true
     preventInputValues: jest.fn(),
     setupInputLimits: jest.fn(),
@@ -202,7 +202,7 @@ describe('displayStations', () => {
   beforeEach(async () => {
     stationsContainer = document.getElementById('search-results');
     // Hole den Mock aus dem map-Modul, den main.js beim Import verwendet hat
-    const mapModule = await import('map');
+    const mapModule = await import('../map.js');
     createStationMarker = mapModule.createStationMarker;
   });
   

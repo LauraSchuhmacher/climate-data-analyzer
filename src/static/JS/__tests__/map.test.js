@@ -113,46 +113,47 @@ describe('highlightMarker', () => {
   });
 });
 
+describe('updateUserPosition', () => {
+  it('should update the user position and radius circle', () => {
+    // Mock-Map mit den benötigten Methoden
+    const mockMap = {
+      removeLayer: jest.fn(),
+      addLayer: jest.fn(),
+    };
 
-//TODO: Elias brauchen wir das?
-// describe('updateUserPosition', () => {
-//   it('should update the user position and radius circle', () => {
-//     // Mock-Map mit den benötigten Methoden
-//     const mockMap = {
-//       removeLayer: jest.fn(),
-//       addLayer: jest.fn(),
-//     };
+    const oldUserMarker = { remove: jest.fn() };
+    const oldRadiusCircle = { remove: jest.fn() };
+    const lat = 52.5200;
+    const lon = 13.4050;
+    const radius = 2; // 2 km
 
-//     const oldUserMarker = { remove: jest.fn() };
-//     const oldRadiusCircle = { remove: jest.fn() };
-//     const lat = 52.5200;
-//     const lon = 13.4050;
-//     const radius = 2; // 2 km
+    // Mock für Leaflet-Methoden
+    const mockUserMarker = { addTo: jest.fn() };
+    const mockRadiusCircle = { addTo: jest.fn() };
 
-//     // Mock für Leaflet-Methoden
-//     const mockUserMarker = { addTo: jest.fn() };
-//     const mockRadiusCircle = { addTo: jest.fn() };
+    mockUserMarker.addTo.mockReturnValue(mockUserMarker);
+    mockRadiusCircle.addTo.mockReturnValue(mockRadiusCircle);
 
-//     L.marker = jest.fn().mockReturnValue(mockUserMarker);
-//     L.circle = jest.fn().mockReturnValue(mockRadiusCircle);
+    L.marker = jest.fn().mockReturnValue(mockUserMarker);
+    L.circle = jest.fn().mockReturnValue(mockRadiusCircle);
 
-//     // Funktion aufrufen
-//     const { userMarker, radiusCircle } = updateUserPosition(mockMap, lat, lon, oldUserMarker, oldRadiusCircle, radius);
+    // Funktion aufrufen
+    const { userMarker, radiusCircle } = updateUserPosition(mockMap, lat, lon, oldUserMarker, oldRadiusCircle, radius);
 
-//     // Überprüfen, ob alte Marker entfernt wurden
-//     expect(mockMap.removeLayer).toHaveBeenCalledWith(oldUserMarker);
-//     expect(mockMap.removeLayer).toHaveBeenCalledWith(oldRadiusCircle);
+    // Überprüfen, ob alte Marker entfernt wurden
+    expect(mockMap.removeLayer).toHaveBeenCalledWith(oldUserMarker);
+    expect(mockMap.removeLayer).toHaveBeenCalledWith(oldRadiusCircle);
 
-//     // Überprüfen, ob neue Marker erstellt wurden
-//     expect(L.marker).toHaveBeenCalledWith([lat, lon]);
-//     expect(L.circle).toHaveBeenCalledWith([lat, lon], { radius: 2000 });
+    // Überprüfen, ob neue Marker erstellt wurden
+    expect(L.marker).toHaveBeenCalledWith([lat, lon]);
+    expect(L.circle).toHaveBeenCalledWith([lat, lon], expect.objectContaining({ radius: 2000 }));
+    
+    // Überprüfen, ob die neuen Marker zur Karte hinzugefügt wurden
+    expect(mockUserMarker.addTo).toHaveBeenCalledWith(mockMap);
+    expect(mockRadiusCircle.addTo).toHaveBeenCalledWith(mockMap);
 
-//     // Überprüfen, ob die neuen Marker zur Karte hinzugefügt wurden
-//     expect(mockUserMarker.addTo).toHaveBeenCalledWith(mockMap);
-//     expect(mockRadiusCircle.addTo).toHaveBeenCalledWith(mockMap);
-
-//     // Überprüfen, ob die korrekten Marker und Kreise zurückgegeben wurden
-//     expect(userMarker).toBe(mockUserMarker);
-//     expect(radiusCircle).toBe(mockRadiusCircle);
-//   });
-// });
+    // Überprüfen, ob die korrekten Marker und Kreise zurückgegeben wurden
+    expect(userMarker).toBe(mockUserMarker);
+    expect(radiusCircle).toBe(mockRadiusCircle);
+  });
+});

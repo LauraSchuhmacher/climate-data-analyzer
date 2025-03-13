@@ -1,4 +1,4 @@
-import { fetchStations, fetchStationData, fetchData } from '../backend';
+import { fetchStations, fetchStationData, fetchData } from '../backend.js';
 import fetchMock from 'jest-fetch-mock'
 
 describe('backend.js Tests', () => {

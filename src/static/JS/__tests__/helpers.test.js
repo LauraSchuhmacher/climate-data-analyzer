@@ -10,7 +10,7 @@ import {
     chartOptions,
     formatFloat,
     swapSeasonsForSouthernHemisphere
-  } from '../helpers';
+  } from '../helpers.js';
   
   global.CanvasRenderingContext2D = class CanvasRenderingContext2D {};
   HTMLCanvasElement.prototype.getContext = function () {
