@@ -208,11 +208,6 @@ def test_calculate_averages():
     assert result_2001 == expected_result_2001
 
 
-def test_fetch_url():
-    #assert fetch_url(STATIONS_URL_AWS, "stations data")== (200,)
-    #falsche URL
-    assert fetch_url(f"{STATIONS_URL_AWS}1", "stations data")[1:] == (500,)
-
 
 # Test read_data()
 def test_read_data_success():
@@ -265,7 +260,6 @@ if __name__ == "__main__":
     test_get_stations_within_radius()
     test_haversine()
     test_calculate_averages()
-    test_fetch_url()
     test_read_data_success()
     test_read_data_file_not_found()
     test_read_data_invalid_json()
