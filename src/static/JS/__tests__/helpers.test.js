@@ -1,55 +1,40 @@
+import { setupDOM } from '../jest/testHelpers.js';
 import { jest } from '@jest/globals';
 import { 
-    validateRequiredFields,
-    preventInputValues,
-    setupInputLimits,
-    populateYearOptions,
-    updateYearOptions,
-    createCanvas,
-    generateChartDatasets,
-    chartOptions,
-    formatFloat,
-    swapSeasonsForSouthernHemisphere
-  } from '../helpers.js';
-  
-  global.CanvasRenderingContext2D = class CanvasRenderingContext2D {};
-  HTMLCanvasElement.prototype.getContext = function () {
-    return new CanvasRenderingContext2D();
-  };
-  
+  validateRequiredFields,
+  preventInputValues,
+  setupInputLimits,
+  populateYearOptions,
+  updateYearOptions,
+  createCanvas,
+  generateChartDatasets,
+  chartOptions,
+  formatFloat,
+  swapSeasonsForSouthernHemisphere
+} from '../helpers.js';
 
-  describe('helpers.js Tests', () => {
-    
-    beforeEach(() => {
-      // DOM zurücksetzen
-      document.body.innerHTML = `
-        <input id="longitude" />
-        <input id="latitude" />
-        <input id="radius" />
-        <input id="limit" />
-        <select id="startYear"></select>
-        <select id="endYear"></select>
-        <div id="chart-container"></div>
-      `;
-    });
-  
-    it('should validate required fields', () => {
-      const longitudeInput = document.getElementById('longitude');
-      const latitudeInput = document.getElementById('latitude');
-      const radiusInput = document.getElementById('radius');
-      const limitInput = document.getElementById('limit');
-  
-      longitudeInput.value = '50';
-      latitudeInput.value = '10';
-      radiusInput.value = '5';
-      limitInput.value = '2';
-  
-      expect(validateRequiredFields()).toBe(true);
-  
-      limitInput.value = ''; 
-  
-      expect(validateRequiredFields()).toBe(false);
-    });
+global.CanvasRenderingContext2D = class CanvasRenderingContext2D {};
+HTMLCanvasElement.prototype.getContext = function () {
+  return new CanvasRenderingContext2D();
+};
+
+beforeEach(setupDOM);
+
+describe('helpers.js', () => {
+  beforeEach(setupDOM);
+
+  it('validateRequiredFields: should return true when all fields are filled', () => {
+    document.getElementById('longitude').value = '50';
+    document.getElementById('latitude').value = '10';
+    document.getElementById('radius').value = '5';
+    document.getElementById('limit').value = '2';
+    expect(validateRequiredFields()).toBe(true);
+  });
+
+  it('validateRequiredFields: should return false when a field is empty', () => {
+    document.getElementById('limit').value = '';
+    expect(validateRequiredFields()).toBe(false);
+  });
   
     it('should prevent invalid input for limit and radius', () => {
       const limitInput = document.getElementById('limit');
