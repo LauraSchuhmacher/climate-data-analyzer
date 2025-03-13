@@ -59,7 +59,6 @@ describe('helpers.js', () => {
   });
   
   it('should limit input values for longitude, latitude, limit, and radius', () => {
-    // Zuerst die Event-Listener registrieren
     setupInputLimits();
   
     const longitudeInput = document.getElementById('longitude');
@@ -118,7 +117,8 @@ describe('helpers.js', () => {
       const startYearSelect = document.getElementById('startYear');
       const endYearSelect = document.getElementById('endYear');
   
-      expect(startYearSelect.options.length).toBe(262); // 2024 - 1763 + 1 = 262 Optionen
+      // 2024 - 1763 + 1 = 262 Optionen
+      expect(startYearSelect.options.length).toBe(262); 
       expect(endYearSelect.options.length).toBe(262);
       expect(endYearSelect.value).toBe('2024');
     });
@@ -147,7 +147,6 @@ describe('helpers.js', () => {
       }
     });
 
-    // Test für createCanvas
     it('should create a canvas element', () => {
       const ctx = createCanvas('chart-container');
       const canvas = document.querySelector('canvas');

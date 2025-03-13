@@ -6,7 +6,6 @@ import {
   updateUserPosition 
 } from '../map.js';
 
-// Helper, um Standard-Leaflet-Mocks zu setzen
 const setupLeafletMocks = () => {
   const fakeMap = {
     setView: jest.fn().mockReturnThis(),
@@ -16,7 +15,6 @@ const setupLeafletMocks = () => {
   };
   L.map = jest.fn(() => fakeMap);
   L.tileLayer = jest.fn(() => ({ addTo: jest.fn() }));
-  // Default-Mocks für Marker und Circle können in den einzelnen Tests individuell angepasst werden
 };
 
 describe('map.js', () => {
@@ -28,7 +26,6 @@ describe('map.js', () => {
     let fakeMap;
     beforeEach(() => {
       fakeMap = L.map();
-      // Für initializeMap brauchen wir eigene Mocks für marker und circle:
       L.marker = jest.fn(() => ({ addTo: jest.fn() }));
       L.circle = jest.fn(() => ({ addTo: jest.fn() }));
     });
@@ -102,7 +99,6 @@ describe('map.js', () => {
       const normalIconPath = 'path/to/normal-icon.png';
       const selectedIconPath = 'path/to/selected-icon.png';
 
-      // Zentraler Mock für L.icon
       L.icon = jest.fn((options) => ({
         iconUrl: options.iconUrl,
         iconSize: options.iconSize || [30, 30],
@@ -128,12 +124,11 @@ describe('map.js', () => {
       const oldRadiusCircle = { remove: jest.fn() };
       const lat = 52.5200;
       const lon = 13.4050;
-      const radius = 2; // 2 km
+      const radius = 2;
 
-      // Setze Mocks für Marker und Kreis, die addTo() korrekt zurückliefern:
       const fakeUserMarker = { addTo: jest.fn().mockReturnValue(undefined) };
       const fakeRadiusCircle = { addTo: jest.fn().mockReturnValue(undefined) };
-      // Um das Testziel zu erreichen, konfigurieren wir sie so, dass addTo() die eigenen Objekte zurückliefert:
+
       fakeUserMarker.addTo = jest.fn().mockReturnValue(fakeUserMarker);
       fakeRadiusCircle.addTo = jest.fn().mockReturnValue(fakeRadiusCircle);
 

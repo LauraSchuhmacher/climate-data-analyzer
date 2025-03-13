@@ -1,4 +1,4 @@
-import { setupDOM, getContainers } from '../jest/testHelpers.js'; // Passe ggf. den Pfad an
+import { setupDOM, getContainers } from '../jest/testHelpers.js';
 import { jest } from '@jest/globals';
 
 let displayStations, searchStationsHandler, evaluateStationHandler, clear, renderDisplay;
@@ -50,11 +50,9 @@ beforeEach(async () => {
     swapSeasonsForSouthernHemisphere: jest.fn(data => data),
   }));
 
-  // main.js importieren (nachdem DOM zurückgesetzt wurde)
   const main = await import('../main.js');
   ({ displayStations, searchStationsHandler, evaluateStationHandler, clear, renderDisplay } = main);
 
-  // Zusätzlichen Import von createStationMarker aus map.js
   const mapModule = await import('../map.js');
   createStationMarker = mapModule.createStationMarker;
 });
