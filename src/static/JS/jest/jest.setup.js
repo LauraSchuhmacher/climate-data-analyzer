@@ -1,4 +1,5 @@
-// jest.setup.js
+// globale Mocks & Konfigurationen
+
 import { jest } from '@jest/globals';
 import fetchMock from 'jest-fetch-mock';
 
@@ -12,7 +13,7 @@ global.fetch = fetchMock;
 // Global alert mocken
 global.alert = jest.fn();
 
-// Hilfsfunktion für Fake-Marker
+// Fake-Marker
 const createFakeMarker = () => ({
   addTo: jest.fn().mockReturnThis(),
   bindPopup: jest.fn(),

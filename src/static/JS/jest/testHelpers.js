@@ -1,4 +1,4 @@
-// testHelpers.js
+// Hilfsfunktionen für Tests
 
 export const setupDOM = () => {
     document.body.innerHTML = `
