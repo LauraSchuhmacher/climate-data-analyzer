@@ -15,7 +15,8 @@
     "transform": {},
     "moduleNameMapper": {
       "^backend$": "<rootDir>/src/static/JS/backend.js",
-      "^map$": "<rootDir>/src/static/JS/map.js"
+      "^map$": "<rootDir>/src/static/JS/map.js",
+      "^helpers$": "<rootDir>/src/static/JS/helpers.js"
     }
   },
   "devDependencies": {

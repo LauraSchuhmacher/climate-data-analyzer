@@ -39,3 +39,11 @@ global.L = {
     openOn: jest.fn(),
   })),
 };
+
+// Dummy-Mock für Chart.js
+global.Chart = class {
+  constructor(ctx, config) {
+  }
+  destroy() {
+  }
+};

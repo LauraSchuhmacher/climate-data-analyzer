@@ -83,11 +83,6 @@ const createStationRow = station => `
  * @param {Array} stations - Array von Station-Objekten
  */
 export const displayStations = stations => {
-  if (!stations.length) {
-    alert("Es wurden keine Stationen gefunden, die den Suchkriterien entsprechen!");
-    return;
-  }
-
   // Erzeuge die Tabelle mittels Template Literal
   stationsContainer.innerHTML = `
     <table>
@@ -190,7 +185,7 @@ const highlightSelectedStationAndMarker = stationId => {
  * @param {Array} data - Array von Daten (z. B. jährliche Temperaturwerte)
  * @param {string} displayType - 'graphic', 'table' oder 'both'
  */
-const renderDisplay = (data, displayType) => {
+export const renderDisplay = (data, displayType) => {
   if (displayType === 'graphic' || displayType === 'both') {
     renderChart(data);
     chartContainer.style.height = '400px';
@@ -304,7 +299,11 @@ export const searchStationsHandler = async () => {
 
   try {
     const stations = await fetchStations(lat, lon, radius, limit, startYear, endYear);
-    displayStations(stations);
+    if (!stations || stations.length === 0) {
+      alert("Es wurden keine Stationen gefunden, die den Suchkriterien entsprechen!");
+    } else {
+      displayStations(stations);
+    }
   } catch (error) {
     console.error(error);
   }
