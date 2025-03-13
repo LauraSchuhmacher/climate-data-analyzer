@@ -20,7 +20,7 @@ $ git clone git@github.com:LauraSchuhmacher/ClimateDataAnalyzer.git
 
 ## Running the App
 1. Start Docker. 
-2. Start the `climatedataanalyzer` container.
+2. Start the `lazy_lama` container.
 3. Open your browser and navigate to [http://localhost:5000](http://localhost:5000).
 
 ## Run the container
@@ -39,13 +39,13 @@ Or
 To pull and run the container, run:
 
 ```bash
-docker run -p 5000:5000 ghcr.io/lauraschuhmacher/climate-data-analyzer:latest
+docker run -p 5000:5000 --name lazy_lama ghcr.io/lauraschuhmacher/climate-data-analyzer:latest
 ```
 
 or
 
 ```bash
-podman run -p 5000:5000 ghcr.io/lauraschuhmacher/climate-data-analyzer:latest
+podman run -p 5000:5000 --name lazy_lama ghcr.io/lauraschuhmacher/climate-data-analyzer:latest
 ```
 
 ## Rules
