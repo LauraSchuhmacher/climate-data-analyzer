@@ -2,7 +2,7 @@
 ## Introduction
 Climate Data Analyzer is a tool that helps you analyze and visualize climate data from past years. The data comes from weather stations around the world.
 
-## Run it locally
+## Run it from a local repository
 ### Prerequisites
 Make sure you have the following installed:
 - Git
