@@ -11,7 +11,7 @@ Make sure you have the following installed:
 ### Installation
 #### 1. Clone Git Repository
 ```bash
-$ git clone git@github.com:LauraSchuhmacher/ClimateDataAnalyzer.git
+$ git clone git@github.com:LauraSchuhmacher/climate-data-analyzer.git
 ```
 #### 2. Start Docker
 
@@ -56,4 +56,3 @@ podman run -p 5000:5000 --name lazy_lama ghcr.io/lauraschuhmacher/climate-data-a
 #### Backend
 * Functions are declared in snake_case
 * Variables are declared in snake_case
-
