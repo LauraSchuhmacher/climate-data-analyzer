@@ -1,12 +1,11 @@
 # Climate Data Analyzer
 ## Introduction
-Climate Data Analyzer is a tool designed to help you analyze and visualize climate data from the past years based on weather stations.
+Climate Data Analyzer is a tool that helps you analyze and visualize climate data from past years. The data comes from weather stations around the world.
 
 ## Run it locally
 ### Prerequisites
 Make sure you have the following installed:
 - Git
-- Python
 - Docker
 
 ### Installation
@@ -14,14 +13,10 @@ Make sure you have the following installed:
 ```bash
 $ git clone git@github.com:LauraSchuhmacher/ClimateDataAnalyzer.git
 ```
-#### 2. Install Dependencies
-```bash
-$ pip install -r requirements.txt
-```
-#### 3. Docker
-```bash
-$ docker-compose up --build
-```
+#### 2. Start Docker
+
+#### 3. Execute setup.ps1
+
 
 ## Running the App
 1. Start Docker. 
