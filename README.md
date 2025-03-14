@@ -11,7 +11,7 @@ Make sure you have the following installed:
 ### Installation
 #### 1. Clone Git Repository
 ```bash
-$ git clone git@github.com:LauraSchuhmacher/ClimateDataAnalyzer.git
+$ git clone git@github.com:LauraSchuhmacher/climate-data-analyzer.git
 ```
 #### 2. Start Docker
 
@@ -20,7 +20,7 @@ $ git clone git@github.com:LauraSchuhmacher/ClimateDataAnalyzer.git
 
 ## Running the App
 1. Start Docker. 
-2. Start the `climatedataanalyzer` container.
+2. Start the `lazy_lama` container.
 3. Open your browser and navigate to [http://localhost:5000](http://localhost:5000).
 
 ## Run the container
@@ -39,13 +39,13 @@ Or
 To pull and run the container, run:
 
 ```bash
-docker run -p 5000:5000 ghcr.io/lauraschuhmacher/climate-data-analyzer:latest
+docker run -p 5000:5000 --name lazy_lama ghcr.io/lauraschuhmacher/climate-data-analyzer:latest
 ```
 
 or
 
 ```bash
-podman run -p 5000:5000 ghcr.io/lauraschuhmacher/climate-data-analyzer:latest
+podman run -p 5000:5000 --name lazy_lama ghcr.io/lauraschuhmacher/climate-data-analyzer:latest
 ```
 
 ## Rules
@@ -56,4 +56,3 @@ podman run -p 5000:5000 ghcr.io/lauraschuhmacher/climate-data-analyzer:latest
 #### Backend
 * Functions are declared in snake_case
 * Variables are declared in snake_case
-

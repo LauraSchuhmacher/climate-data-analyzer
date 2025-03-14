@@ -7,8 +7,8 @@ if (Get-Command docker -ErrorAction SilentlyContinue) {
         $buildContext = "src"
         if (Test-Path $dockerfilePath) {
             Write-Host "Docker is running. Building and starting the container..."
-            docker build -t climate-data-analyzer -f $dockerfilePath $buildContext
-            docker run -d -p 5000:5000 --name lazy-lama climate-data-analyzer
+            docker build -t climate_data_analyzer -f $dockerfilePath $buildContext
+            docker run -d -p 5000:5000 --name lazy_lama climate_data_analyzer
         } else {
             Write-Host "Dockerfile not found in src/!"
         }
