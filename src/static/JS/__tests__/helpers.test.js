@@ -21,21 +21,23 @@ HTMLCanvasElement.prototype.getContext = function () {
 beforeEach(setupDOM);
 
 describe('helpers.js', () => {
-  beforeEach(setupDOM);
 
-  it('validateRequiredFields: should return true when all fields are filled', () => {
-    document.getElementById('longitude').value = '50';
-    document.getElementById('latitude').value = '10';
-    document.getElementById('radius').value = '5';
-    document.getElementById('limit').value = '2';
-    expect(validateRequiredFields()).toBe(true);
-  });
-
-  it('validateRequiredFields: should return false when a field is empty', () => {
-    document.getElementById('limit').value = '';
-    expect(validateRequiredFields()).toBe(false);
+  describe('validateRequiredFields', () => {
+    it('should return true when all fields are filled', () => {
+      document.getElementById('longitude').value = '50';
+      document.getElementById('latitude').value = '10';
+      document.getElementById('radius').value = '5';
+      document.getElementById('limit').value = '2';
+      expect(validateRequiredFields()).toBe(true);
+    });
+  
+    it('should return false when a field is empty', () => {
+      document.getElementById('limit').value = '';
+      expect(validateRequiredFields()).toBe(false);
+    });
   });
   
+  describe('preventInputValues', () => {
     it('should prevent invalid input for limit and radius', () => {
       const limitInput = document.getElementById('limit');
       
@@ -56,62 +58,65 @@ describe('helpers.js', () => {
       const validEvent = mockEvent('1');
       preventInputValues(validEvent);
       expect(validEvent.preventDefault).not.toHaveBeenCalled();
+    });
   });
   
-  it('should limit input values for longitude, latitude, limit, and radius', () => {
-    setupInputLimits();
+  describe('setupInputLimits', () => {
+    it('should limit input values for longitude, latitude, limit, and radius', () => {
+      setupInputLimits();
   
-    const longitudeInput = document.getElementById('longitude');
-    const latitudeInput = document.getElementById('latitude');
-    const limitInput = document.getElementById('limit');
-    const radiusInput = document.getElementById('radius');
-    
-    // Longitudes zwischen -180 und 180
-    longitudeInput.value = '200';
-    longitudeInput.dispatchEvent(new Event('input'));
-    let longitudeValue = Number(longitudeInput.value);
-    expect(longitudeValue).toBeLessThanOrEqual(180);
+      const longitudeInput = document.getElementById('longitude');
+      const latitudeInput = document.getElementById('latitude');
+      const limitInput = document.getElementById('limit');
+      const radiusInput = document.getElementById('radius');
+      
+      // Longitudes zwischen -180 und 180
+      longitudeInput.value = '200';
+      longitudeInput.dispatchEvent(new Event('input'));
+      let longitudeValue = Number(longitudeInput.value);
+      expect(longitudeValue).toBeLessThanOrEqual(180);
   
-    longitudeInput.value = '-200';
-    longitudeInput.dispatchEvent(new Event('input'));
-    longitudeValue = Number(longitudeInput.value);
-    expect(longitudeValue).toBeGreaterThanOrEqual(-180);
+      longitudeInput.value = '-200';
+      longitudeInput.dispatchEvent(new Event('input'));
+      longitudeValue = Number(longitudeInput.value);
+      expect(longitudeValue).toBeGreaterThanOrEqual(-180);
   
-    // Latitude zwischen -90 und 90
-    latitudeInput.value = '100';
-    latitudeInput.dispatchEvent(new Event('input'));
-    let latitudeValue = Number(latitudeInput.value);
-    expect(latitudeValue).toBeLessThanOrEqual(90);
-     
-    latitudeInput.value = '-100';
-    latitudeInput.dispatchEvent(new Event('input'));
-    latitudeValue = Number(latitudeInput.value);
-    expect(latitudeValue).toBeGreaterThanOrEqual(-90);
-    
-    // Limit zwischen 1 und 10
-    limitInput.value = '11';
-    limitInput.dispatchEvent(new Event('input'));
-    let limitValue = Number(limitInput.value);
-    expect(limitValue).toBeLessThanOrEqual(10);
-    
-    limitInput.value = '0';
-    limitInput.dispatchEvent(new Event('input'));
-    limitValue = Number(limitInput.value);
-    expect(limitValue).toBeGreaterThanOrEqual(1);
-    
-    // Radius zwischen 1 und 100
-    radiusInput.value = '110';
-    radiusInput.dispatchEvent(new Event('input'));
-    let radiusValue = Number(radiusInput.value);
-    expect(radiusValue).toBeLessThanOrEqual(100);
-    
-    radiusInput.value = '0';
-    radiusInput.dispatchEvent(new Event('input'));
-    radiusValue = Number(radiusInput.value);
-    expect(radiusValue).toBeGreaterThanOrEqual(1);
+      // Latitude zwischen -90 und 90
+      latitudeInput.value = '100';
+      latitudeInput.dispatchEvent(new Event('input'));
+      let latitudeValue = Number(latitudeInput.value);
+      expect(latitudeValue).toBeLessThanOrEqual(90);
+       
+      latitudeInput.value = '-100';
+      latitudeInput.dispatchEvent(new Event('input'));
+      latitudeValue = Number(latitudeInput.value);
+      expect(latitudeValue).toBeGreaterThanOrEqual(-90);
+      
+      // Limit zwischen 1 und 10
+      limitInput.value = '11';
+      limitInput.dispatchEvent(new Event('input'));
+      let limitValue = Number(limitInput.value);
+      expect(limitValue).toBeLessThanOrEqual(10);
+      
+      limitInput.value = '0';
+      limitInput.dispatchEvent(new Event('input'));
+      limitValue = Number(limitInput.value);
+      expect(limitValue).toBeGreaterThanOrEqual(1);
+      
+      // Radius zwischen 1 und 100
+      radiusInput.value = '110';
+      radiusInput.dispatchEvent(new Event('input'));
+      let radiusValue = Number(radiusInput.value);
+      expect(radiusValue).toBeLessThanOrEqual(100);
+      
+      radiusInput.value = '0';
+      radiusInput.dispatchEvent(new Event('input'));
+      radiusValue = Number(radiusInput.value);
+      expect(radiusValue).toBeGreaterThanOrEqual(1);
+    });
   });
   
-  
+  describe('populateYearOptions', () => {
     it('should populate year options for startYear and endYear', () => {
       populateYearOptions();
       const startYearSelect = document.getElementById('startYear');
@@ -122,7 +127,9 @@ describe('helpers.js', () => {
       expect(endYearSelect.options.length).toBe(262);
       expect(endYearSelect.value).toBe('2024');
     });
+  });
   
+  describe('updateYearOptions', () => {
     it('should disable future years for startYear and past years for endYear', () => {
       const startYearSelect = document.getElementById('startYear');
       const endYearSelect = document.getElementById('endYear');
@@ -146,7 +153,9 @@ describe('helpers.js', () => {
         }
       }
     });
-
+  });
+  
+  describe('createCanvas', () => {
     it('should create a canvas element', () => {
       const ctx = createCanvas('chart-container');
       const canvas = document.querySelector('canvas');
@@ -154,7 +163,9 @@ describe('helpers.js', () => {
       expect(canvas).not.toBeNull();
       expect(ctx).toBeInstanceOf(CanvasRenderingContext2D);
     });
+  });
   
+  describe('generateChartDatasets', () => {
     it('should generate correct chart datasets', () => {
       const data = [
         { tmax: 20, tmin: 10, spring_tmax: null, spring_tmin: 0.0, summer_tmax: 30, summer_tmin: 20, fall_tmax: 22, fall_tmin: 12, winter_tmax: 10, winter_tmin: 0 }
@@ -171,21 +182,27 @@ describe('helpers.js', () => {
       expect(datasets[3].label).toBe('Frühling TMIN');
       expect(datasets[3].data).toEqual([0]);
     });
+  });
   
+  describe('chartOptions', () => {
     it('should return the correct chart options', () => {
       const options = chartOptions();
       expect(options).toHaveProperty('responsive');
       expect(options.scales.x.title.text).toBe('years');
       expect(options.scales.y.title.text).toBe('°C');
     });
+  });
 
+  describe('formatFloat', () => {
     it('should format float values correctly', () => {
       expect(formatFloat(10)).toBe('10.0');
       expect(formatFloat(10.5)).toBe(10.5);
       expect(formatFloat(null)).toBe('-');
       expect(formatFloat(undefined)).toBe('-');
     });
+  });
   
+  describe('swapSeasonsForSouthernHemisphere', () => {
     it('should swap seasons for southern hemisphere', () => {
       const data = [
         { spring_tmax: 25, spring_tmin: 15, summer_tmax: 30, summer_tmin: 20, fall_tmax: 22, fall_tmin: 12, winter_tmax: 10, winter_tmin: 0 }
@@ -201,6 +218,6 @@ describe('helpers.js', () => {
       expect(swappedData[0].winter_tmax).toBe(30);
       expect(swappedData[0].winter_tmin).toBe(20);
     });
-  
   });
   
+});
