@@ -124,7 +124,7 @@ export const displayStations = stations => {
  * @param {string} mode - 'all' oder 'data'
  */
 export const clear = (mode = 'all') => {
-  if (mode === 'all') {
+  if (mode === 'all')   {
     stationsContainer.innerHTML = '';
     stationsContainer.style.display = 'none';
     if (userMarker) map.removeLayer(userMarker);
@@ -141,6 +141,7 @@ export const clear = (mode = 'all') => {
         chartInstance.destroy();
         chartInstance = null;
       }
+      chartContainer.innerHTML = '';
       chartContainer.style.display = 'none';
     }
     if (tableDataContainer) {

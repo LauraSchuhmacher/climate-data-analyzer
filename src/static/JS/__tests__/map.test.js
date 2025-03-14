@@ -1,43 +1,21 @@
 import { jest } from '@jest/globals';
-import { 
-  initializeMap, 
-  createStationMarker, 
-  highlightMarker, 
-  updateUserPosition 
-} from '../map.js';
-
-const setupLeafletMocks = () => {
-  const fakeMap = {
-    setView: jest.fn().mockReturnThis(),
-    addLayer: jest.fn(),
-    on: jest.fn(),
-    removeLayer: jest.fn(),
-  };
-  L.map = jest.fn(() => fakeMap);
-  L.tileLayer = jest.fn(() => ({ addTo: jest.fn() }));
-};
+import { initializeMap, createStationMarker, highlightMarker, updateUserPosition } from '../map.js';
 
 describe('map.js', () => {
+  // Alle Mocks vor jedem Test zurücksetzen
   beforeEach(() => {
-    setupLeafletMocks();
+    jest.clearAllMocks();
   });
 
   describe('initializeMap', () => {
-    let fakeMap;
-    beforeEach(() => {
-      fakeMap = L.map();
-      L.marker = jest.fn(() => ({ addTo: jest.fn() }));
-      L.circle = jest.fn(() => ({ addTo: jest.fn() }));
-    });
-
-    it('should initialize map with correct settings', () => {
+    it('should initialize map with correct settings and set click event listener', () => {
       const { map } = initializeMap();
       const initialLat = 52.5162;
       const initialLon = 13.3777;
       const initialZoom = 5;
 
       expect(L.map).toHaveBeenCalledWith('map');
-      expect(fakeMap.setView).toHaveBeenCalledWith([initialLat, initialLon], initialZoom);
+      expect(map.setView).toHaveBeenCalledWith([initialLat, initialLon], initialZoom);
       expect(L.tileLayer).toHaveBeenCalledWith(
         'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
         expect.objectContaining({ attribution: expect.any(String) })
@@ -52,17 +30,13 @@ describe('map.js', () => {
           fillOpacity: 0.2,
         })
       );
-    });
-
-    it('should set click event listener for map', () => {
-      initializeMap();
-      expect(fakeMap.on).toHaveBeenCalledWith('click', expect.any(Function));
+      expect(map.on).toHaveBeenCalledWith('click', expect.any(Function));
     });
   });
 
   describe('createStationMarker', () => {
     it('should create a station marker and bind a popup', () => {
-      const fakeMap = { addLayer: jest.fn() };
+      const fakeMap = {};
       const station = {
         latitude: 52.5162,
         longitude: 13.3777,
@@ -71,11 +45,6 @@ describe('map.js', () => {
         maxdate: '2025-01-01',
       };
       const iconPath = 'path/to/icon.png';
-      const fakeMarker = {
-        bindPopup: jest.fn(),
-        addTo: jest.fn().mockReturnThis(),
-      };
-      L.marker = jest.fn(() => fakeMarker);
 
       const marker = createStationMarker(fakeMap, station, iconPath);
 
@@ -83,9 +52,8 @@ describe('map.js', () => {
         [station.latitude, station.longitude],
         expect.objectContaining({ icon: expect.any(Object) })
       );
-      expect(fakeMarker.addTo).toHaveBeenCalledWith(fakeMap);
-      expect(fakeMarker.bindPopup).toHaveBeenCalledWith(expect.stringContaining(station.name));
-      expect(marker).toBe(fakeMarker);
+      expect(marker.addTo).toHaveBeenCalledWith(fakeMap);
+      expect(marker.bindPopup).toHaveBeenCalledWith(expect.stringContaining(station.name));
     });
   });
 
@@ -99,13 +67,6 @@ describe('map.js', () => {
       const normalIconPath = 'path/to/normal-icon.png';
       const selectedIconPath = 'path/to/selected-icon.png';
 
-      L.icon = jest.fn((options) => ({
-        iconUrl: options.iconUrl,
-        iconSize: options.iconSize || [30, 30],
-        iconAnchor: options.iconAnchor || [15, 15],
-        popupAnchor: options.popupAnchor || [0, -30],
-      }));
-
       highlightMarker(fakeMap, fakeMarker, normalIconPath, selectedIconPath);
 
       expect(L.icon).toHaveBeenCalledWith(expect.objectContaining({ iconUrl: selectedIconPath }));
@@ -116,24 +77,12 @@ describe('map.js', () => {
 
   describe('updateUserPosition', () => {
     it('should update the user position and radius circle', () => {
-      const fakeMap = {
-        removeLayer: jest.fn(),
-        addLayer: jest.fn(),
-      };
+      const fakeMap = { removeLayer: jest.fn(), addLayer: jest.fn() };
       const oldUserMarker = { remove: jest.fn() };
       const oldRadiusCircle = { remove: jest.fn() };
       const lat = 52.5200;
       const lon = 13.4050;
       const radius = 2;
-
-      const fakeUserMarker = { addTo: jest.fn().mockReturnValue(undefined) };
-      const fakeRadiusCircle = { addTo: jest.fn().mockReturnValue(undefined) };
-
-      fakeUserMarker.addTo = jest.fn().mockReturnValue(fakeUserMarker);
-      fakeRadiusCircle.addTo = jest.fn().mockReturnValue(fakeRadiusCircle);
-
-      L.marker = jest.fn().mockReturnValue(fakeUserMarker);
-      L.circle = jest.fn().mockReturnValue(fakeRadiusCircle);
 
       const { userMarker, radiusCircle } = updateUserPosition(
         fakeMap,
@@ -147,11 +96,12 @@ describe('map.js', () => {
       expect(fakeMap.removeLayer).toHaveBeenCalledWith(oldUserMarker);
       expect(fakeMap.removeLayer).toHaveBeenCalledWith(oldRadiusCircle);
       expect(L.marker).toHaveBeenCalledWith([lat, lon]);
-      expect(L.circle).toHaveBeenCalledWith([lat, lon], expect.objectContaining({ radius: 2000 }));
-      expect(fakeUserMarker.addTo).toHaveBeenCalledWith(fakeMap);
-      expect(fakeRadiusCircle.addTo).toHaveBeenCalledWith(fakeMap);
-      expect(userMarker).toBe(fakeUserMarker);
-      expect(radiusCircle).toBe(fakeRadiusCircle);
+      expect(L.circle).toHaveBeenCalledWith(
+        [lat, lon],
+        expect.objectContaining({ radius: radius * 1000 })
+      );
+      expect(userMarker.addTo).toHaveBeenCalledWith(fakeMap);
+      expect(radiusCircle.addTo).toHaveBeenCalledWith(fakeMap);
     });
   });
 });

@@ -1,4 +1,12 @@
-import { setupDOM, getContainers } from '../jest/testHelpers.js';
+import { 
+  setupDOM,
+  getContainers,
+  setDummyContentForContainers,
+  setRequiredFieldsForSearchStationHandler, 
+  setRequiredFieldsForEvaluateStationHandler, 
+  setDummyDataForDisplayStations,
+  setDummyDataForRenderDisplay
+} from '../jest/testHelpers.js';
 import { jest } from '@jest/globals';
 
 let displayStations, searchStationsHandler, evaluateStationHandler, clear, renderDisplay;
@@ -59,45 +67,35 @@ beforeEach(async () => {
 
 describe('clear', () => {
   it('should clear all elements', () => {
+    const { stationsContainer, chartContainer, tableDataContainer } = getContainers();
+    setDummyContentForContainers();
     clear('all');
-    const stationsContainer = document.querySelector('#search-results');
-    const chartContainer = document.querySelector('#chart-container');
-    const tableContainer = document.querySelector('#table-data');
+
     expect(stationsContainer.innerHTML).toBe('');
     expect(stationsContainer.style.display).toBe('none');
     expect(chartContainer.innerHTML).toBe('');
     expect(chartContainer.style.display).toBe('none');
-    expect(tableContainer.innerHTML).toBe('');
-    expect(tableContainer.style.display).toBe('none');
+    expect(tableDataContainer.innerHTML).toBe('');
+    expect(tableDataContainer.style.display).toBe('none');
   });
 
   it('should clear data and charts when mode is "data"', () => {
+    const { stationsContainer, chartContainer, tableDataContainer } = getContainers();
+    setDummyContentForContainers();
     clear('data');
-    const chartContainer = document.querySelector('#chart-container');
-    const tableContainer = document.querySelector('#table-data');
+
+    expect(stationsContainer.innerHTML).not.toBe('');
+    expect(stationsContainer.style.display).not.toBe('none');
     expect(chartContainer.innerHTML).toBe('');
     expect(chartContainer.style.display).toBe('none');
-    expect(tableContainer.innerHTML).toBe('');
-    expect(tableContainer.style.display).toBe('none');
+    expect(tableDataContainer.innerHTML).toBe('');
+    expect(tableDataContainer.style.display).toBe('none');
   });
 });
 
 describe('searchStationsHandler', () => {
-  const setRequiredFields = () => {
-    document.getElementById('latitude').value = '52';
-    document.getElementById('longitude').value = '13';
-    document.getElementById('radius').value = '80';
-    document.getElementById('limit').value = '10';
-    const startYearSelect = document.getElementById('startYear');
-    const endYearSelect = document.getElementById('endYear');
-    startYearSelect.innerHTML = '<option value="2020">2020</option>';
-    endYearSelect.innerHTML = '<option value="2024">2024</option>';
-    startYearSelect.value = '2020';
-    endYearSelect.value = '2024';
-  };
-
   it('should fetch stations when required fields are filled', async () => {
-    setRequiredFields();
+    setRequiredFieldsForSearchStationHandler();
     const stations = [{
       id: 'GME00125026',
       name: 'LANGENLIPSDORF',
@@ -114,7 +112,7 @@ describe('searchStationsHandler', () => {
   });
 
   it('should show an alert if no stations are found', async () => {
-    setRequiredFields();
+    setRequiredFieldsForSearchStationHandler();
     backend.fetchStations.mockResolvedValue([]);
     await searchStationsHandler();
     expect(global.alert).toHaveBeenCalledWith('Es wurden keine Stationen gefunden, die den Suchkriterien entsprechen!');
@@ -123,17 +121,7 @@ describe('searchStationsHandler', () => {
 
 describe('evaluateStationHandler', () => {
   it('should call fetchStationData and render result', async () => {
-    // Setze erforderliche Felder
-    document.getElementById('latitude').value = '52';
-    document.getElementById('longitude').value = '13';
-    document.getElementById('radius').value = '80';
-    document.getElementById('limit').value = '10';
-    const startYearSelect = document.getElementById('startYear');
-    const endYearSelect = document.getElementById('endYear');
-    startYearSelect.innerHTML = '<option value="2020">2020</option>';
-    endYearSelect.innerHTML = '<option value="2024">2024</option>';
-    startYearSelect.value = '2020';
-    endYearSelect.value = '2024';
+    setRequiredFieldsForEvaluateStationHandler();
 
     // Simuliere vorhandene Station
     backend.fetchStations.mockResolvedValue([{
@@ -156,21 +144,18 @@ describe('evaluateStationHandler', () => {
   });
 
   it('should alert when no station is selected', async () => {
-    global.selectedStationId = null;
+    // Klick nicht simuliert -> keine Station ist ausgewählt
     await evaluateStationHandler();
     expect(global.alert).toHaveBeenCalledWith('Bitte zuerst eine Station auswählen!');
   });
 });
 
 describe('displayStations & renderDisplay', () => {
-  const dummyStations = [
-    { id: 'GME001', name: 'Station1', latitude: 52, longitude: 13, mindate: 2000, maxdate: 2024, distance: 1.5 },
-    { id: 'GME002', name: 'Station2', latitude: 53, longitude: 14, mindate: 2010, maxdate: 2023, distance: 2.0 }
-  ];
+  const Stations = setDummyDataForDisplayStations();
 
   describe('displayStations', () => {
     it('should display a table with station data', () => {
-      displayStations(dummyStations);
+      displayStations(Stations);
       const { stationsContainer } = getContainers();
       expect(stationsContainer.innerHTML).toContain('Station1');
       expect(stationsContainer.innerHTML).toContain('Station2');
@@ -178,17 +163,12 @@ describe('displayStations & renderDisplay', () => {
     });
 
   it('should create markers for each station', () => {
-    const stations = [
-      { id: 'GME001', name: 'Station1', latitude: 52, longitude: 13, mindate: 2000, maxdate: 2024, distance: 1.5 },
-      { id: 'GME002', name: 'Station2', latitude: 53, longitude: 14, mindate: 2010, maxdate: 2023, distance: 2.0 }
-    ];
-
-    displayStations(stations);
+    displayStations(Stations);
     expect(createStationMarker).toHaveBeenCalledTimes(2);
   });
 
   it('should add click event listeners to station rows', () => {
-    displayStations([dummyStations[0]]);
+    displayStations([Stations[0]]);
     const stationRow = document.querySelector('.station-row');
     expect(stationRow).toBeTruthy();
     stationRow.dispatchEvent(new Event('click', { bubbles: true }));
@@ -197,21 +177,7 @@ describe('displayStations & renderDisplay', () => {
 });
 
 describe('renderDisplay', () => {
-  const dummyData = [
-    {
-      year: 2000,
-      tmax: 10,
-      tmin: 5,
-      spring_tmax: 11,
-      spring_tmin: 6,
-      summer_tmax: 15,
-      summer_tmin: 10,
-      fall_tmax: 12,
-      fall_tmin: 8,
-      winter_tmax: 9,
-      winter_tmin: 4
-    }
-  ];
+  const dummyData = setDummyDataForRenderDisplay();
 
   it('should render chart when displayType is "graphic"', () => {
     renderDisplay(dummyData, 'graphic');
